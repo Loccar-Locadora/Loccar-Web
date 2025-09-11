@@ -1,0 +1,55 @@
+<div class="container">
+  <div class="card">
+    <div class="icon">
+      <i class="fas fa-user-plus"></i>
+    </div>
+    <h2>Cadastro</h2>
+    <p>Preencha os campos abaixo para criar sua conta</p>
+
+    <form (ngSubmit)="onSubmit()" #formCadastro="ngForm">
+      <div class="form-group">
+        <label for="nome">Nome</label>
+        <input
+          type="text"
+          id="nome"
+          name="nome"
+          class="form-control"
+          [(ngModel)]="usuario.nome"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          class="form-control"
+          [(ngModel)]="usuario.email"
+          required
+        />
+      </div>
+
+      <div class="form-group">
+        <label for="senha">Senha</label>
+        <input
+          type="password"
+          id="senha"
+          name="senha"
+          class="form-control"
+          [(ngModel)]="usuario.senha"
+          required
+        />
+      </div>
+
+      <button type="submit" class="btn" [disabled]="!formCadastro.form.valid">
+        Cadastrar
+      </button>
+    </form>
+
+    <p class="link">
+      Já tem conta?
+    </p>
+  </div>
+</div>
