@@ -29,9 +29,12 @@ export class LoginComponent {
     this.authService.login(this.login.email, this.login.senha)
       .subscribe({
         next: () => {
-          // Por enquanto, apenas mostra uma mensagem de sucesso
-          this.errorMessage = 'Login realizado com sucesso!';
-          console.log('Login bem sucedido');
+          console.log('Login bem sucedido, redirecionando para dashboard...');
+          this.router.navigate(['/dashboard']).then(() => {
+            console.log('Redirecionamento concluído');
+          }).catch(err => {
+            console.error('Erro no redirecionamento:', err);
+          });
         },
         error: (error) => {
           console.error('Erro no login:', error);

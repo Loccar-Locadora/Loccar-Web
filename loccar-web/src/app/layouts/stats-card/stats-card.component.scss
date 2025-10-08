@@ -1,0 +1,21 @@
+/* src/app/shared/stats-card/stats-card.component.scss */
+:host { display: block; }
+.stats-card {
+  background: var(--card-bg, #fff);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: var(--card-shadow, 0 1px 4px rgba(0,0,0,.06));
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  min-width: 220px;
+}
+
+.card-icon { 
+  margin-top: 4px;
+  svg { width:28px; height:28px; fill: currentColor; color: #333; }
+}
+
+.card-title { font-size: 13px; color: #666; }
+.card-value { font-size: 26px; font-weight: 700; margin-top:6px; }
+.card-hint { font-size: 12px; color: #9b9b9b; margin-top:6px; }

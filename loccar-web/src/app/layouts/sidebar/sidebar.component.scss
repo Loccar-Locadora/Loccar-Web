@@ -1,0 +1,19 @@
+/* src/app/layout/sidebar/sidebar.component.scss */
+.sidebar {
+  width: 240px;
+  padding: 20px;
+  background: #fff;
+  border-right: 1px solid #eee;
+  height: 100vh;
+  position: sticky;
+  top:0;
+  .brand { font-weight:700; font-size: 18px; margin-bottom:18px; }
+  .user { display:flex; align-items:center; gap:12px; margin-bottom:20px;
+    .avatar{ width:40px;height:40px;border-radius:50%;background:#7c4dff;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;}
+  }
+  .nav { display:flex; flex-direction:column; gap:10px;
+    .nav-item { padding:10px 12px; border-radius:8px; color:#333; text-decoration:none; display:block; }
+    .nav-item.active { background:#7c4dff; color:#fff; }
+  }
+  .logout { margin-top:auto; color:#666; font-size:14px; }
+}
