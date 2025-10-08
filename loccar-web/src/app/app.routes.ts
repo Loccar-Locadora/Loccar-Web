@@ -3,8 +3,13 @@ import { CadastroUsuarioComponent } from './features/auth/cadastro-usuario/cadas
 import { LoginComponent } from './features/auth/login-usuario/login.component';
 
 export const routes: Routes = [
-  { path: 'cadastro', component: CadastroUsuarioComponent },
+  // Rotas públicas
   { path: 'login', component: LoginComponent },
-  { path: '', redirectTo: 'login', pathMatch: 'full' }, // redireciona para login por padrão
-  { path: '**', redirectTo: 'login' } // rota inválida cai no login
+  { path: 'cadastro', component: CadastroUsuarioComponent },
+  
+  // Rota padrão
+  { path: '', redirectTo: '/login', pathMatch: 'full' },
+  
+  // Rota 404
+  { path: '**', redirectTo: '/login' }
 ];

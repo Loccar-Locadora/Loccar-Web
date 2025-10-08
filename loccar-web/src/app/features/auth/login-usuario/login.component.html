@@ -16,6 +16,7 @@
           class="form-control"
           [(ngModel)]="login.email"
           required
+          email
         />
       </div>
 
@@ -28,7 +29,12 @@
           class="form-control"
           [(ngModel)]="login.senha"
           required
+          minlength="6"
         />
+      </div>
+
+      <div *ngIf="errorMessage" class="error-message">
+        {{ errorMessage }}
       </div>
 
       <button type="submit" class="btn" [disabled]="!formLogin.form.valid">
@@ -38,7 +44,7 @@
 
     <p class="link">
       Não tem conta?
-      <a href="/cadastro">Cadastre-se aqui</a>
+      <a routerLink="/cadastro">Cadastre-se aqui</a>
     </p>
   </div>
 </div>

@@ -20,8 +20,8 @@ export class AuthService {
   ) {}
 
   /** Login com usuário e senha */
-  login(email: string, password: string) {
-    return this.http.post<{ token: string }>(`${this.API_URL}/login`, { email, password })
+  login(email: string, senha: string) {
+    return this.http.post<{ token: string }>(`${this.API_URL}/login`, { email, senha })
       .pipe(
         tap(response => {
           this.setToken(response.token);
