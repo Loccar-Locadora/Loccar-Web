@@ -1,6 +1,5 @@
 .page {
   display: flex;
-  flex-direction: column;
   min-height: 100vh;
   background-color: #f3f4f6;
   width: 100%;
@@ -9,6 +8,8 @@
 .content {
   flex: 1;
   padding: 1.5rem;
+  min-height: 100vh;
+  background-color: #f3f4f6;
 
   @media (min-width: 1024px) {
     padding: 2rem;

@@ -1,19 +1,47 @@
-<!-- src/app/layout/sidebar/sidebar.component.html -->
 <aside class="sidebar">
-  <div class="brand">Loccar</div>
-  <div class="user">
-    <div class="avatar">CA</div>
-    <div class="name">Carlos Admin</div>
+  <div class="logo">
+    <img src="assets/icons/car.svg" alt="logo" class="logo-icon" />
+    <span class="logo-text">Loccar</span>
   </div>
 
-  <nav class="nav">
-    <a class="nav-item active">Dashboard</a>
-    <a class="nav-item">Gestão de Usuários</a>
-    <a class="nav-item">Gestão de Veículos</a>
-    <a class="nav-item">Relatórios</a>
-    <a class="nav-item">Financeiro</a>
-    <a class="nav-item">Configurações</a>
+  <div class="user-info">
+    <div class="avatar">CA</div>
+    <div>
+      <div class="user-name">Carlos Admin</div>
+      <div class="user-role">Administrador</div>
+    </div>
+  </div>
+
+  <nav class="menu">
+    <a routerLink="/dashboard" routerLinkActive="active" class="menu-item">
+      <i class="bi bi-house"></i>
+      Dashboard
+    </a>
+    <a routerLink="/usuarios" routerLinkActive="active" class="menu-item">
+      <i class="bi bi-people"></i>
+      Gestão de Usuários
+    </a>
+    <a routerLink="/veiculos" routerLinkActive="active" class="menu-item">
+      <i class="bi bi-car-front"></i>
+      Gestão de Veículos
+    </a>
+    <a routerLink="/relatorios" routerLinkActive="active" class="menu-item">
+      <i class="bi bi-bar-chart"></i>
+      Relatórios
+    </a>
+    <a routerLink="/financeiro" routerLinkActive="active" class="menu-item">
+      <i class="bi bi-cash-stack"></i>
+      Financeiro
+    </a>
+    <a routerLink="/config" routerLinkActive="active" class="menu-item">
+      <i class="bi bi-gear"></i>
+      Configurações
+    </a>
   </nav>
 
-  <div class="logout">Sair</div>
+  <div class="logout">
+    <button class="logout-btn">
+      <i class="bi bi-box-arrow-right"></i> Sair
+    </button>
+  </div>
 </aside>
