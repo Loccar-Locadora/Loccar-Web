@@ -10,7 +10,7 @@ import { StatItem, ActivityItem } from './models';
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, SidebarComponent, RouterLink, StatsCardComponent],
+  imports: [CommonModule, SidebarComponent, StatsCardComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrls: ['./admin-dashboard.component.scss']
 })

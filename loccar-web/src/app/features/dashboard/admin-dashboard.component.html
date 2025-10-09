@@ -1,60 +1,69 @@
 <!-- src/app/dashboard/dashboard.component.html -->
-<div class="page">
-  <app-sidebar></app-sidebar>
-  <main class="content ml-64"><!-- Adicionando margem à esquerda igual à largura da sidebar -->
-    <header class="page-header">
-      <h1>Painel Administrativo</h1>
-      <p class="subtitle">Visão geral do sistema e métricas de negócio</p>
+<div class="flex min-h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <app-sidebar class="w-64 fixed h-full bg-white shadow-md"></app-sidebar>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-64 p-6">
+    <!-- Header -->
+    <header class="mb-6">
+      <h1 class="text-3xl font-bold text-gray-800">Painel Administrativo</h1>
+      <p class="text-gray-500 mt-1">Visão geral do sistema e métricas de negócio</p>
     </header>
 
-    <section class="top-stats" *ngIf="stats$ | async as stats">
+    <!-- Top Stats -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6" *ngIf="stats$ | async as stats">
       <app-stats-card *ngFor="let s of stats" [data]="s"></app-stats-card>
     </section>
 
-    <section class="mid-grid">
-      <div class="big-card chart-card">
-        <h3>Receita dos Últimos 6 Meses</h3>
-        <p class="muted">Evolução mensal do faturamento</p>
-        <div class="chart-placeholder"> <!-- lugar para chart.js -->
-          <div class="placeholder-inner">
-            
-            <div>Gráfico de receita seria exibido aqui</div>
-          </div>
+    <!-- Mid Grid -->
+    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+      <!-- Receita Card -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-1">Receita dos Últimos 6 Meses</h3>
+        <p class="text-gray-500 mb-4">Evolução mensal do faturamento</p>
+        <div class="h-64 bg-gray-50 border border-dashed border-gray-300 rounded flex items-center justify-center">
+          <span class="text-gray-400">Gráfico de receita seria exibido aqui</span>
         </div>
       </div>
 
-      <div class="big-card activity-card">
-        <h3>Atividade Recente</h3>
-        <p class="muted">Últimas ações no sistema</p>
-        <div *ngIf="activities$ | async as activities" class="activity-list">
-          <div *ngFor="let a of activities" class="activity-item">
-            <div class="bullet"></div>
+      <!-- Atividade Recente -->
+      <div class="bg-white rounded-lg shadow p-6">
+        <h3 class="text-xl font-semibold text-gray-800 mb-1">Atividade Recente</h3>
+        <p class="text-gray-500 mb-4">Últimas ações no sistema</p>
+        <div *ngIf="activities$ | async as activities" class="space-y-4 max-h-64 overflow-y-auto">
+          <div *ngFor="let a of activities" class="flex items-start space-x-3">
+            <div class="w-3 h-3 mt-2 bg-blue-500 rounded-full flex-shrink-0"></div>
             <div>
-              <div class="act-title">{{ a.title }}</div>
-              <div class="act-time">{{ a.timeAgo }}</div>
+              <div class="text-gray-800 font-medium">{{ a.title }}</div>
+              <div class="text-gray-400 text-sm">{{ a.timeAgo }}</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <section class="quick-actions">
-      <div class="action-card">
-        <h4>Gestão de Usuários</h4>
-        <button class="btn primary">Ver Todos os Usuários</button>
-        <button class="btn ghost">Adicionar Funcionário</button>
+    <!-- Quick Actions -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <!-- Gestão de Usuários -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
+        <h4 class="text-lg font-semibold text-gray-800">Gestão de Usuários</h4>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">Ver Todos os Usuários</button>
+        <button class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 rounded">Adicionar Funcionário</button>
       </div>
 
-      <div class="action-card">
-        <h4>Gestão de Frota</h4>
-        <button class="btn primary">Ver Todos os Veículos</button>
-        <button class="btn ghost">Adicionar Veículo</button>
+      <!-- Gestão de Frota -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
+        <h4 class="text-lg font-semibold text-gray-800">Gestão de Frota</h4>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">Ver Todos os Veículos</button>
+        <button class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 rounded">Adicionar Veículo</button>
       </div>
 
-      <div class="action-card">
-        <h4>Sistema</h4>
-        <button class="btn primary">Relatórios Detalhados</button>
-        <button class="btn ghost">Configurações</button>
+      <!-- Sistema -->
+      <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
+        <h4 class="text-lg font-semibold text-gray-800">Sistema</h4>
+        <button class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded">Relatórios Detalhados</button>
+        <button class="border border-gray-300 hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 rounded">Configurações</button>
       </div>
     </section>
   </main>
