@@ -23,37 +23,12 @@ export class AdminDashboardComponent {
     // Initialize with mock data for now
     this.stats$ = new Observable<StatItem[]>(observer => {
       observer.next([
-        { 
-          id: '1',
-          title: 'Total Vehicles', 
-          value: '24',
-          hint: '+2.6% from last month',
-          icon: 'car'
-        },
-        { 
-          id: '2',
-          title: 'Active Rentals', 
-          value: '12',
-          hint: '+1.2% from last month',
-          icon: 'key'
-        },
-        { 
-          id: '3',
-          title: 'Total Customers', 
-          value: '45',
-          hint: '+4.1% from last month',
-          icon: 'users'
-        },
-        { 
-          id: '4',
-          title: 'Revenue', 
-          value: 'R$ 23.500',
-          hint: '+2.4% from last month',
-          icon: 'currency-dollar'
-        }
+        { id: 1, title: 'Total Vehicles', value: '24', hint: '+2.6% from last month', icon: 'directions_car' },
+        { id: 2, title: 'Active Rentals', value: '12', hint: '+1.2% from last month', icon: 'key' },
+        { id: 3, title: 'Total Customers', value: '45', hint: '+4.1% from last month', icon: 'people' },
+        { id: 4, title: 'Revenue', value: 'R$ 23.500', hint: '+2.4% from last month', icon: 'attach_money' }
       ]);
     });
-
     this.activities$ = new Observable<ActivityItem[]>(observer => {
       observer.next([
         { 

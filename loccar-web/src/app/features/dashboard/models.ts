@@ -1,6 +1,6 @@
 // src/app/dashboard/models.ts
 export interface StatItem {
-  id: string;
+  id: number;
   title: string;
   value: string;
   hint?: string;
