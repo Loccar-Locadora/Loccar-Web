@@ -1,0 +1,193 @@
+<!-- Gestão de Veículos -->
+<div class="flex min-h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <app-sidebar class="w-64 fixed h-full bg-white shadow-md"></app-sidebar>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-64 p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-6">
+      <header>
+        <h1 class="text-3xl font-bold text-gray-800">Gestão de Veículos</h1>
+        <p class="text-gray-500 mt-1">Gerencie a frota de veículos da locadora</p>
+      </header>
+      
+      <!-- Botão Novo Veículo -->
+      <button 
+        (click)="novoVeiculo()"
+        class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2 transition">
+        <i class="bi bi-plus"></i>
+        <span>Novo Veículo</span>
+      </button>
+    </div>
+
+    <!-- Stats Cards -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6" *ngIf="vehicleStats$ | async as stats">
+      <div *ngFor="let stat of stats" class="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
+        <!-- Header com título e ícone -->
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-600">{{ stat.title }}</h3>
+          <div 
+            class="w-8 h-8 rounded-lg flex items-center justify-center"
+            [ngClass]="{
+              'bg-blue-100': stat.color === 'blue',
+              'bg-green-100': stat.color === 'green', 
+              'bg-red-100': stat.color === 'red',
+              'bg-purple-100': stat.color === 'purple'
+            }">
+            <i 
+              class="text-lg"
+              [ngClass]="{
+                'bi bi-car-front text-blue-600': stat.icon === 'directions_car',
+                'bi bi-check-circle text-green-600': stat.icon === 'check_circle',
+                'bi bi-exclamation-triangle text-red-600': stat.icon === 'warning',
+                'bi bi-grid text-purple-600': stat.icon === 'category'
+              }"></i>
+          </div>
+        </div>
+
+        <!-- Valor principal -->
+        <div class="text-3xl font-bold text-gray-900">{{ stat.value }}</div>
+      </div>
+    </section>
+
+    <!-- Filtros e Busca -->
+    <section class="bg-white rounded-lg shadow p-6 mb-6">
+      <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <!-- Campo de busca -->
+        <div class="relative flex-1 max-w-md w-full lg:w-auto">
+          <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input
+            type="text"
+            placeholder="Buscar veículos..."
+            #searchInput
+            (input)="onBuscaChange(searchInput.value)"
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
+          <!-- Filtro por categoria -->
+          <select 
+            #categoryFilter
+            (change)="onCategoriaChange(categoryFilter.value)"
+            class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="todas">Todas as categorias</option>
+            <option value="Sedan">Sedan</option>
+            <option value="SUV">SUV</option>
+            <option value="Economico">Econômico</option>
+            <option value="Luxury">Luxury</option>
+            <option value="Hatch">Hatch</option>
+          </select>
+
+          <!-- Filtro por status -->
+          <select 
+            #statusFilter
+            (change)="onStatusChange(statusFilter.value)"
+            class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            <option value="todos">Todos os status</option>
+            <option value="Disponível">Disponíveis</option>
+            <option value="Indisponível">Indisponíveis</option>
+            <option value="Manutenção">Em Manutenção</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Grid de Veículos -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" *ngIf="veiculos$ | async as veiculos">
+      <div *ngFor="let veiculo of veiculos" 
+           class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+        
+        <!-- Status Badge -->
+        <div class="relative">
+          <img 
+            [src]="veiculo.imagem" 
+            [alt]="veiculo.nome"
+            class="w-full h-48 object-cover">
+          <div class="absolute top-4 right-4">
+            <span 
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+              [ngClass]="getStatusColor(veiculo.status)">
+              {{ veiculo.status }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Conteúdo do Card -->
+        <div class="p-6">
+          <!-- Header do veículo -->
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ veiculo.nome }}</h3>
+              <p class="text-gray-600 text-sm">{{ veiculo.marca }} • {{ veiculo.ano }}</p>
+            </div>
+            <span 
+              class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
+              [ngClass]="getCategoriaColor(veiculo.categoria)">
+              {{ veiculo.categoria }}
+            </span>
+          </div>
+
+          <!-- Especificações -->
+          <div class="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-600">
+            <div class="flex items-center">
+              <span class="font-medium">Lugares:</span>
+              <span class="ml-1">{{ veiculo.lugares }}</span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium">Combustível:</span>
+              <span class="ml-1">{{ veiculo.combustivel }}</span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium">Câmbio:</span>
+              <span class="ml-1">{{ veiculo.cambio }}</span>
+            </div>
+            <div class="flex items-center">
+              <span class="font-medium text-gray-900">R$ {{ veiculo.precoDia }}/dia</span>
+            </div>
+          </div>
+
+          <!-- Ações -->
+          <div class="flex items-center justify-between pt-4 border-t border-gray-200">
+            <div class="flex space-x-2">
+              <button
+                (click)="editarVeiculo(veiculo)"
+                class="text-gray-600 hover:text-blue-600 transition p-2 hover:bg-blue-50 rounded-lg"
+                title="Editar veículo">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button
+                (click)="excluirVeiculo(veiculo)"
+                class="text-gray-600 hover:text-red-600 transition p-2 hover:bg-red-50 rounded-lg"
+                title="Excluir veículo">
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            
+            <button
+              (click)="inativarVeiculo(veiculo)"
+              [class]="veiculo.status === 'Disponível' ? 
+                'bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition' : 
+                'bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition'">
+              {{ veiculo.status === 'Disponível' ? 'Inativar' : 'Ativar' }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Empty State (quando não há veículos) -->
+    <div *ngIf="(veiculos$ | async)?.length === 0" 
+         class="text-center py-12">
+      <i class="bi bi-car-front text-gray-400 text-6xl mb-4"></i>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum veículo encontrado</h3>
+      <p class="text-gray-500 mb-6">Adicione seu primeiro veículo à frota</p>
+      <button 
+        (click)="novoVeiculo()"
+        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+        Adicionar Veículo
+      </button>
+    </div>
+  </main>
+</div>

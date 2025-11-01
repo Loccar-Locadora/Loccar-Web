@@ -1,13 +1,17 @@
-<div class="bg-white rounded-lg shadow p-4 flex items-center space-x-4 hover:shadow-md transition" role="group" [attr.aria-label]="data.title">
-      <!-- Ícone -->
-      <div class="flex-shrink-0 w-12 h-12 bg-gray-100 text-blue-600 rounded-full flex items-center justify-center">
-        <mat-icon *ngIf="data.icon" class="text-[oklch(.646_.222_280.116)] w-6 h-6">{{ data.icon }}</mat-icon>
+<div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition" role="group" [attr.aria-label]="data.title">
+      <!-- Header com título e ícone -->
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-sm font-medium text-gray-600">{{ data.title }}</h3>
+        <div class="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+          <i *ngIf="getIcon(data.icon)" class="{{getIcon(data.icon)}} text-gray-600"></i>
+        </div>
       </div>
 
-      <!-- Corpo do card -->
-      <div class="flex-1">
-        <div class="text-gray-800 text-sm font-medium">{{ data.title }}</div>
-        <div class="text-2xl font-bold text-gray-900">{{ data.value }}</div>
-        <div *ngIf="data.hint" class="text-gray-600 text-sm mt-1">{{ data.hint }}</div>
+      <!-- Valor principal -->
+      <div class="mb-2">
+        <div class="text-3xl font-bold text-gray-900">{{ data.value }}</div>
       </div>
+
+      <!-- Hint/Informação adicional -->
+      <div *ngIf="data.hint" class="text-sm text-gray-500">{{ data.hint }}</div>
     </div>

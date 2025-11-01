@@ -23,31 +23,31 @@ export class AdminDashboardComponent {
     // Initialize with mock data for now
     this.stats$ = new Observable<StatItem[]>(observer => {
       observer.next([
-        { id: 1, title: 'Total Vehicles', value: '24', hint: '+2.6% from last month', icon: 'directions_car' },
-        { id: 2, title: 'Active Rentals', value: '12', hint: '+1.2% from last month', icon: 'key' },
-        { id: 3, title: 'Total Customers', value: '45', hint: '+4.1% from last month', icon: 'people' },
-        { id: 4, title: 'Revenue', value: 'R$ 23.500', hint: '+2.4% from last month', icon: 'attach_money' }
+        { id: 1, title: 'Total de Usuários', value: '156', hint: '+12% este mês', icon: 'people' },
+        { id: 2, title: 'Frota Total', value: '25', hint: '+2 novos este mês', icon: 'directions_car' },
+        { id: 3, title: 'Receita Mensal', value: 'R$ 45.600', hint: '+8% vs mês anterior', icon: 'attach_money' },
+        { id: 4, title: 'Reservas Ativas', value: '12', hint: 'taxa de ocupação: 48%', icon: 'trending_up' }
       ]);
     });
     this.activities$ = new Observable<ActivityItem[]>(observer => {
       observer.next([
         { 
           id: '1',
-          title: 'New Rental',
-          subtitle: 'John Doe rented a Toyota Corolla',
-          timeAgo: '2 hours ago'
+          title: 'Novo cliente cadastrado: Ana Costa',
+          subtitle: '',
+          timeAgo: '2 horas atrás'
         },
         {
           id: '2',
-          title: 'Vehicle Return',
-          subtitle: 'Maria Silva returned BMW X1',
-          timeAgo: '5 hours ago'
+          title: 'Veículo adicionado: Honda Civic 2024',
+          subtitle: '',
+          timeAgo: '4 horas atrás'
         },
         {
           id: '3',
-          title: 'Maintenance Alert',
-          subtitle: 'Ford Fusion scheduled for service',
-          timeAgo: '1 day ago'
+          title: 'Nova reserva: Toyota Corolla por 5 dias',
+          subtitle: '',
+          timeAgo: '6 horas atrás'
         }
       ]);
     });

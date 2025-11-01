@@ -6,9 +6,10 @@ export const authGuard = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isLoggedIn()) {
+  if (authService.isAuthenticated()) {
     return true;
   }
 
+  console.warn('Acesso negado. Redirecionando para login...');
   return router.parseUrl('/login');
 };

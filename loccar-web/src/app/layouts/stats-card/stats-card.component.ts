@@ -16,4 +16,14 @@ export class StatsCardComponent {
     hint?: string;
     icon?: string; // nome do ícone do Material Icons, ex: "directions_car", "people", "attach_money"
   };
+
+  getIcon(iconName?: string): string {
+    const iconMap: { [key: string]: string } = {
+      'people': 'bi bi-people',
+      'directions_car': 'bi bi-car-front',
+      'attach_money': 'bi bi-currency-dollar',
+      'trending_up': 'bi bi-graph-up-arrow'
+    };
+    return iconName ? (iconMap[iconName] || 'bi bi-info-circle') : 'bi bi-info-circle';
+  }
 }
