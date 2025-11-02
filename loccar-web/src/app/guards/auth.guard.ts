@@ -11,5 +11,8 @@ export const authGuard = () => {
   }
 
   console.warn('Acesso negado. Redirecionando para login...');
-  return router.parseUrl('/login');
+  
+  // Salvar a URL atual para redirecionar após login
+  const currentUrl = router.url;
+  return router.parseUrl(`/login?returnUrl=${encodeURIComponent(currentUrl)}`);
 };

@@ -36,10 +36,16 @@ export class LoginComponent implements OnInit, OnDestroy {
     // Obter URL de retorno dos query params
     this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
     
-    // Verificar se já está logado
-    if (this.authService.isAuthenticated()) {
-      this.router.navigate([this.returnUrl]);
-    }
+    // Verificar se já está logado (com pequeno delay para garantir que logout foi processado)
+    setTimeout(() => {
+      console.log('Login ngOnInit - verificando autenticação:', this.authService.isAuthenticated());
+      console.log('Login ngOnInit - token existe:', !!this.authService.getToken());
+      
+      if (this.authService.isAuthenticated()) {
+        console.log('Usuário já logado, redirecionando para:', this.returnUrl);
+        this.router.navigate([this.returnUrl]);
+      }
+    }, 100);
 
     // Verificar se veio de cadastro bem-sucedido
     const navigation = this.router.getCurrentNavigation();
@@ -77,11 +83,20 @@ export class LoginComponent implements OnInit, OnDestroy {
     const loginSub = this.authService.login(credentials)
       .subscribe({
         next: (response) => {
-          console.log('Login bem-sucedido:', response);
+          console.log('Login component - resposta recebida:', response);
           this.isLoading = false;
           
-          // Redirecionar para a URL de retorno ou dashboard
-          this.router.navigate([this.returnUrl]);
+          // Verificar se está autenticado após processamento
+          console.log('Verificando autenticação após login...');
+          console.log('isAuthenticated():', this.authService.isAuthenticated());
+          console.log('Token existe:', !!this.authService.getToken());
+          console.log('Usuário atual:', this.authService.getCurrentUser());
+          
+          // Login bem-sucedido, redirecionar para dashboard
+          setTimeout(() => {
+            console.log('Redirecionando para:', this.returnUrl);
+            this.router.navigate([this.returnUrl]);
+          }, 100);
         },
         error: (error) => {
           console.error('Erro no login:', error);

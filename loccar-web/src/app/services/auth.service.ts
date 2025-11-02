@@ -19,8 +19,9 @@ import {
 })
 export class AuthService {
   // URLs da API baseadas nos CURLs fornecidos
-  private readonly LOGIN_URL = 'http://192.168.1.5:5290/api/auth/login';
-  private readonly REGISTER_URL = 'http://192.168.1.5:5002/api/auth/register';
+  private readonly LOGIN_URL = 'http://192.168.1.108:5290/api/auth/login';
+  private readonly REGISTER_URL = 'http://192.168.1.108:5290/api/auth/register';
+  private readonly LOGOUT_URL = 'http://192.168.1.108:5290/api/auth/logout';
 
   // Estado de autenticação usando BehaviorSubject
   private authStateSubject = new BehaviorSubject<AuthState>({
@@ -60,11 +61,63 @@ export class AuthService {
     return this.http.post<AuthResponse>(this.LOGIN_URL, credentials)
       .pipe(
         tap(response => {
-          if (response.token || response.accessToken) {
-            const token = response.token || response.accessToken || '';
+          // A API retorna: { code: "200", message: "...", data: "jwt_token" }
+          const token = response.data; // Token está no campo 'data'
+          
+          if (token) {
+            // Salvar o token primeiro (já foi validado pelo backend)
             this.setToken(token);
-            this.setUser(response.user);
-            this.updateAuthState(token, response.user);
+            
+            // Tentar extrair dados do usuário do JWT (opcional)
+            let user: User;
+            try {
+              // Decodificar JWT de forma mais robusta
+              const parts = token.split('.');
+              if (parts.length !== 3) {
+                throw new Error('Token JWT não tem formato válido');
+              }
+              
+              // Decodificar payload
+              const base64Payload = parts[1];
+              
+              // Adicionar padding se necessário
+              const paddedPayload = base64Payload + '='.repeat((4 - base64Payload.length % 4) % 4);
+              
+              // Decodificar usando decodeURIComponent para lidar com caracteres especiais
+              const decodedBytes = atob(paddedPayload);
+              const payload = JSON.parse(decodeURIComponent(escape(decodedBytes)));
+              
+              console.log('JWT decodificado com sucesso:', payload);
+              
+              // Criar objeto User a partir do payload do JWT
+              user = {
+                id: String(payload.id || ''),
+                username: payload.name || 'Usuário',
+                email: credentials.email, // Usar email do login
+                driverLicense: '', // Não disponível no JWT
+                cellPhone: '', // Não disponível no JWT
+                role: payload.role as any || 'Cliente'
+              };
+              
+            } catch (error) {
+              console.warn('Não foi possível decodificar JWT, usando dados mínimos:', error);
+              
+              // Se não conseguir decodificar, criar usuário com dados mínimos
+              user = {
+                id: '0',
+                username: 'Usuário',
+                email: credentials.email,
+                driverLicense: '',
+                cellPhone: '',
+                role: 'Cliente' as any
+              };
+            }
+            
+            this.setUser(user);
+            this.updateAuthState(token, user);
+            
+          } else {
+            throw new Error('Token não recebido da API');
           }
         }),
         catchError(this.handleError)
@@ -92,14 +145,80 @@ export class AuthService {
    * Logout do usuário
    */
   logout(): void {
+    console.log('Fazendo logout do usuário...');
+    
+    const token = this.getToken();
+    
+    if (token) {
+      console.log('Token encontrado para logout:', token.substring(0, 20) + '...');
+      
+      // Fazer requisição de logout para a API
+      this.http.post(this.LOGOUT_URL, {})
+        .pipe(
+          catchError(error => {
+            console.error('Erro ao fazer logout na API:', error);
+            console.error('Status:', error.status);
+            console.error('Mensagem:', error.message);
+            // Mesmo com erro na API, continuar com logout local
+            return throwError(() => error);
+          })
+        )
+        .subscribe({
+          next: (response) => {
+            console.log('Logout realizado com sucesso na API:', response);
+          },
+          error: (error) => {
+            console.warn('Erro na API de logout, mas continuando com logout local:', error);
+          },
+          complete: () => {
+            this.performLocalLogout();
+          }
+        });
+    } else {
+      // Se não tem token, fazer logout local direto
+      this.performLocalLogout();
+    }
+  }
+
+  /**
+   * Realizar logout local (limpar dados e redirecionar)
+   */
+  private performLocalLogout(): void {
+    console.log('Realizando logout local...');
+    
+    // Forçar limpeza completa do estado
+    this.clearAllAuthData();
+
+    console.log('Estado de autenticação limpo');
+
+    // Redirecionar para login
+    this.router.navigate(['/login']);
+  }
+
+  /**
+   * Limpar todos os dados de autenticação
+   */
+  private clearAllAuthData(): void {
+    // Limpar signal
     this._token.set(null);
     
+    // Limpar localStorage de forma mais agressiva
     if (isPlatformBrowser(this.platformId)) {
       localStorage.removeItem('auth_token');
       localStorage.removeItem('auth_user');
+      
+      // Limpar também possíveis chaves antigas
+      localStorage.removeItem('token');
+      localStorage.removeItem('user');
+      
+      console.log('Todos os dados removidos do localStorage');
+      
+      // Verificar se foi realmente limpo
+      const remainingToken = localStorage.getItem('auth_token');
+      console.log('Verificação pós-limpeza - token ainda existe:', !!remainingToken);
     }
 
-    // Atualizar estado
+    // Atualizar todos os estados
     this.authStateSubject.next({
       isAuthenticated: false,
       user: null,
@@ -108,9 +227,77 @@ export class AuthService {
 
     this.isAuthenticated$.next(false);
     this.currentUser$.next(null);
+    
+    // Verificar estado após limpeza
+    console.log('Verificação pós-limpeza:');
+    console.log('- Signal token:', this._token());
+    console.log('- isAuthenticated():', this.isAuthenticated());
+    console.log('- getCurrentUser():', this.getCurrentUser());
+  }
 
-    // Redirecionar para login
-    this.router.navigate(['/login']);
+  /**
+   * Logout silencioso (sem redirecionamento)
+   */
+  logoutSilent(): void {
+    const token = this.getToken();
+    
+    if (token) {
+      // Tentar fazer logout na API, mas não esperar resposta
+      this.http.post(this.LOGOUT_URL, {})
+        .pipe(
+          catchError(error => {
+            console.error('Erro ao fazer logout silencioso na API:', error);
+            return throwError(() => error);
+          })
+        )
+        .subscribe({
+          next: () => console.log('Logout silencioso realizado na API'),
+          error: () => console.warn('Erro no logout silencioso da API')
+        });
+    }
+    
+    // Realizar logout local imediatamente
+    this.performSilentLocalLogout();
+  }
+
+  /**
+   * Logout com Observable (para componentes que precisam de loading state)
+   */
+  logoutAsync(): Observable<any> {
+    const token = this.getToken();
+    
+    if (!token) {
+      // Se não tem token, fazer logout local e retornar observable completo
+      this.performLocalLogout();
+      return new Observable(observer => {
+        observer.next({ success: true });
+        observer.complete();
+      });
+    }
+
+    // Fazer requisição para API
+    return this.http.post(this.LOGOUT_URL, {})
+      .pipe(
+        tap(response => {
+          console.log('Logout realizado com sucesso na API:', response);
+        }),
+        catchError(error => {
+          console.error('Erro ao fazer logout na API:', error);
+          // Mesmo com erro, fazer logout local
+          return throwError(() => error);
+        }),
+        tap(() => {
+          // Sempre fazer logout local após resposta da API (sucesso ou erro)
+          this.performLocalLogout();
+        })
+      );
+  }
+
+  /**
+   * Realizar logout local silencioso (sem redirecionamento)
+   */
+  private performSilentLocalLogout(): void {
+    this.clearAllAuthData();
   }
 
   /**
@@ -135,33 +322,49 @@ export class AuthService {
   }
 
   /**
-   * Verificar se o token ainda é válido (simplificado)
+   * Forçar limpeza completa (método público para debug)
+   */
+  forceClearAuth(): void {
+    console.log('Forçando limpeza completa de autenticação...');
+    this.clearAllAuthData();
+  }
+
+  /**
+   * Verificar se o token existe (backend já validou)
    */
   private hasValidToken(): boolean {
     const token = this.getTokenFromStorage();
-    if (!token) return false;
-
-    // TODO: Implementar verificação de expiração do JWT
-    // Por enquanto, apenas verifica se o token existe
-    try {
-      // Decodificar JWT para verificar expiração
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const now = Math.floor(Date.now() / 1000);
-      return payload.exp > now;
-    } catch (error) {
-      // Se não conseguir decodificar, assume que é válido
-      // Em produção, implementar validação mais robusta
-      return true;
-    }
+    console.log('hasValidToken - verificando token:', {
+      tokenExists: !!token,
+      tokenLength: token ? token.length : 0,
+      tokenStart: token ? token.substring(0, 20) + '...' : 'null'
+    });
+    
+    // Se o token existe, considera válido (backend já validou)
+    const isValid = !!token && token.trim().length > 0;
+    console.log('hasValidToken resultado:', isValid);
+    
+    return isValid;
   }
 
   /**
    * Salvar token no localStorage
    */
   private setToken(token: string): void {
+    console.log('setToken chamado com:', token ? token.substring(0, 20) + '...' : 'null');
+    
     this._token.set(token);
+    console.log('Signal _token atualizado para:', this._token());
+    
     if (isPlatformBrowser(this.platformId)) {
       localStorage.setItem('auth_token', token);
+      console.log('Token salvo no localStorage');
+      
+      // Verificar se foi salvo corretamente
+      const savedToken = localStorage.getItem('auth_token');
+      console.log('Verificação - token salvo corretamente:', savedToken === token);
+    } else {
+      console.warn('Não está no browser, token não salvo no localStorage');
     }
   }
 
@@ -199,6 +402,9 @@ export class AuthService {
    * Atualizar estado de autenticação
    */
   private updateAuthState(token: string, user: User): void {
+    // Atualizar signal
+    this._token.set(token);
+    
     const authState: AuthState = {
       isAuthenticated: true,
       user,

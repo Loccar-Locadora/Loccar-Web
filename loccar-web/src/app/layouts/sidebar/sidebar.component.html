@@ -9,11 +9,11 @@
   <!-- User Info -->
   <div class="p-6 flex items-center space-x-3 border-b border-gray-200">
     <div class="w-10 h-10 bg-[oklch(.646_.222_280.116)] text-black font-bold flex items-center justify-center rounded-full">
-      CA
+      {{ (currentUser?.username | slice:0:2) || 'US' | uppercase }}
     </div>
     <div>
-      <div class="font-semibold text-gray-800">Carlos Admin</div>
-      <div class="text-gray-500 text-sm">Administrador</div>
+      <div class="font-semibold text-gray-800">{{ currentUser?.username || 'Usuário' }}</div>
+      <div class="text-gray-500 text-sm">{{ currentUser?.role || 'Cliente' }}</div>
     </div>
   </div>
 
@@ -53,9 +53,12 @@
 
   <!-- Logout -->
   <div class="p-6 border-t border-gray-200">
-    <button class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded hover:bg-red-100 hover:text-red-600 text-gray-700 transition">
-      <i class="bi bi-box-arrow-right"></i>
-      <span>Sair</span>
+    <button (click)="onLogout()" 
+            [disabled]="isLoggingOut"
+            class="w-full flex items-center justify-center space-x-2 px-3 py-2 rounded hover:bg-red-100 hover:text-red-600 text-gray-700 transition disabled:opacity-50 disabled:cursor-not-allowed">
+      <i *ngIf="!isLoggingOut" class="bi bi-box-arrow-right"></i>
+      <div *ngIf="isLoggingOut" class="w-4 h-4 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
+      <span>{{ isLoggingOut ? 'Saindo...' : 'Sair' }}</span>
     </button>
   </div>
 </aside>

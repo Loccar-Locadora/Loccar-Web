@@ -25,10 +25,9 @@ export interface User {
 }
 
 export interface AuthResponse {
-  token?: string;
-  accessToken?: string;
-  user: User;
-  message?: string;
+  code: string;
+  message: string;
+  data: string; // JWT token
 }
 
 export interface ApiError {
