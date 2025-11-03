@@ -19,9 +19,9 @@ import {
 })
 export class AuthService {
   // URLs da API baseadas nos CURLs fornecidos
-  private readonly LOGIN_URL = 'http://192.168.1.108:5290/api/auth/login';
-  private readonly REGISTER_URL = 'http://192.168.1.108:5290/api/auth/register';
-  private readonly LOGOUT_URL = 'http://192.168.1.108:5290/api/auth/logout';
+  private readonly LOGIN_URL = 'http://localhost:5290/api/auth/login';
+  private readonly REGISTER_URL = 'http://localhost:5290/api/auth/register';
+  private readonly LOGOUT_URL = 'http://localhost:5290/api/auth/logout';
 
   // Estado de autenticação usando BehaviorSubject
   private authStateSubject = new BehaviorSubject<AuthState>({

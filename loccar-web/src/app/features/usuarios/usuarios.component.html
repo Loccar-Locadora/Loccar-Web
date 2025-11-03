@@ -84,7 +84,7 @@
     <section class="bg-white rounded-lg shadow">
       <!-- Header da tabela -->
       <div class="px-6 py-4 border-b border-gray-200">
-        <h3 class="text-lg font-semibold text-gray-800">Usuários (3)</h3>
+        <h3 class="text-lg font-semibold text-gray-800">Usuários</h3>
         <p class="text-gray-500 text-sm">Lista de todos os usuários do sistema</p>
       </div>
 
@@ -116,7 +116,7 @@
                     {{ usuario.iniciais }}
                   </div>
                   <div>
-                    <div class="font-medium text-gray-900">{{ usuario.nome }}</div>
+                    <div class="font-medium text-gray-900">{{ usuario.name }}</div>
                   </div>
                 </div>
               </td>
@@ -125,7 +125,7 @@
               <td class="px-6 py-4 whitespace-nowrap">
                 <div>
                   <div class="text-sm text-gray-900">{{ usuario.email }}</div>
-                  <div class="text-sm text-gray-500">{{ usuario.telefone }}</div>
+                  <div class="text-sm text-gray-500">{{ usuario.cellphone }}</div>
                 </div>
               </td>
 
@@ -135,6 +135,15 @@
                   class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
                   [ngClass]="getTipoColor(usuario.tipo)">
                   {{ usuario.tipo }}
+                </span>
+              </td>
+
+              <!-- Coluna Status -->
+              <td class="px-6 py-4 whitespace-nowrap">
+                <span 
+                  class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  [ngClass]="getStatusColor(usuario.isActive)">
+                  {{ getStatusText(usuario.isActive) }}
                 </span>
               </td>
 

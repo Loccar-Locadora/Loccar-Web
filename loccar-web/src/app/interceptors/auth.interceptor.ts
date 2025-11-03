@@ -10,9 +10,10 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
   const token = localStorage.getItem('auth_token');
   
   // Log para debug (pode remover depois)
-  if (req.url.includes('/logout') || req.url.includes('/statistics')) {
-    console.log('Interceptor - Requisição:', { 
+  if (req.url.includes('/logout') || req.url.includes('/statistics') || req.url.includes('/user/list') || req.url.includes('/vehicle/')) {
+    console.log('AuthInterceptor - Requisição:', { 
       url: req.url, 
+      method: req.method,
       hasToken: !!token,
       tokenStart: token ? token.substring(0, 20) + '...' : 'null'
     });
@@ -25,8 +26,9 @@ export const authInterceptor: HttpInterceptorFn = (req: HttpRequest<unknown>, ne
       headers: req.headers.set('Authorization', `Bearer ${token}`)
     });
     
-    if (req.url.includes('/logout') || req.url.includes('/statistics')) {
-      console.log('Token adicionado ao header Authorization para:', req.url);
+    if (req.url.includes('/logout') || req.url.includes('/statistics') || req.url.includes('/user/list') || req.url.includes('/vehicle/')) {
+      console.log('AuthInterceptor - Token adicionado ao header Authorization para:', req.url);
+      console.log('AuthInterceptor - Header Authorization:', authReq.headers.get('Authorization')?.substring(0, 30) + '...');
     }
   }
   

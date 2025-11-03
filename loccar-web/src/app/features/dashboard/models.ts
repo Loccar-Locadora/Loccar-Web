@@ -13,3 +13,13 @@ export interface ActivityItem {
   subtitle?: string;
   timeAgo?: string;
 }
+
+export interface UserStatistics {
+  totalUsers: number;
+  activeUsers: number;
+  inactiveUsers: number;
+  adminUsers: number;
+  employeeUsers: number;
+  commonUsers: number;
+  generatedAt: string;
+}

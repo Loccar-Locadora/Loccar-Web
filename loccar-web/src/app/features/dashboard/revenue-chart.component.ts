@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Chart, ChartConfiguration, ChartType, registerables } from 'chart.js';
 import { DashboardService } from '../../services/dashboard.service';
@@ -18,7 +18,7 @@ export interface MonthlyRevenue {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="w-full h-64 relative">
+    <div class="w-full h-full relative">
       <canvas #chartCanvas class="w-full h-full"></canvas>
       <div *ngIf="isLoading" class="absolute inset-0 flex items-center justify-center bg-white bg-opacity-75">
         <div class="flex flex-col items-center space-y-2">
@@ -38,14 +38,21 @@ export interface MonthlyRevenue {
     </div>
   `,
   styles: [`
+    :host {
+      display: block;
+      height: 100%;
+      width: 100%;
+    }
+    
     .chart-container {
       position: relative;
-      height: 256px;
+      height: 100%;
       width: 100%;
+      min-height: 300px;
     }
   `]
 })
-export class RevenueChartComponent implements OnInit {
+export class RevenueChartComponent implements OnInit, AfterViewInit {
   @ViewChild('chartCanvas', { static: true }) chartCanvas!: ElementRef<HTMLCanvasElement>;
   
   chart?: Chart;
@@ -63,6 +70,15 @@ export class RevenueChartComponent implements OnInit {
     if (this.chart) {
       this.chart.destroy();
     }
+  }
+
+  ngAfterViewInit(): void {
+    // Redimensionar o gráfico quando a janela for redimensionada
+    window.addEventListener('resize', () => {
+      if (this.chart) {
+        this.chart.resize();
+      }
+    });
   }
 
   /**
@@ -166,6 +182,14 @@ export class RevenueChartComponent implements OnInit {
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        layout: {
+          padding: {
+            top: 10,
+            right: 10,
+            bottom: 10,
+            left: 10
+          }
+        },
         plugins: {
           legend: {
             display: false

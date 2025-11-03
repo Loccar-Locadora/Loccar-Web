@@ -102,13 +102,13 @@
         <!-- Status Badge -->
         <div class="relative">
           <img 
-            [src]="veiculo.imagem" 
-            [alt]="veiculo.nome"
-            class="w-full h-48 object-cover">
+            [src]="veiculo.imagem || '/assets/images/no-image.png'" 
+            [alt]="getVehicleName(veiculo)"
+            class="w-full h-48 object-cover bg-gray-200">
           <div class="absolute top-4 right-4">
             <span 
               class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-              [ngClass]="getStatusColor(veiculo.status)">
+              [ngClass]="getStatusColor(veiculo.status || 'Disponível')">
               {{ veiculo.status }}
             </span>
           </div>
@@ -119,12 +119,12 @@
           <!-- Header do veículo -->
           <div class="flex justify-between items-start mb-3">
             <div>
-              <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ veiculo.nome }}</h3>
-              <p class="text-gray-600 text-sm">{{ veiculo.marca }} • {{ veiculo.ano }}</p>
+              <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ getVehicleName(veiculo) }}</h3>
+              <p class="text-gray-600 text-sm">{{ veiculo.brand }} • {{ veiculo.modelYear }}</p>
             </div>
             <span 
               class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium"
-              [ngClass]="getCategoriaColor(veiculo.categoria)">
+              [ngClass]="getCategoriaColor(veiculo.categoria || 'Outros')">
               {{ veiculo.categoria }}
             </span>
           </div>
@@ -132,19 +132,19 @@
           <!-- Especificações -->
           <div class="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-600">
             <div class="flex items-center">
-              <span class="font-medium">Lugares:</span>
-              <span class="ml-1">{{ veiculo.lugares }}</span>
+              <span class="font-medium">Capacidade:</span>
+              <span class="ml-1">{{ veiculo.fuelTankCapacity }}L</span>
             </div>
             <div class="flex items-center">
-              <span class="font-medium">Combustível:</span>
-              <span class="ml-1">{{ veiculo.combustivel }}</span>
+              <span class="font-medium">Ano Fab.:</span>
+              <span class="ml-1">{{ veiculo.manufacturingYear }}</span>
             </div>
             <div class="flex items-center">
-              <span class="font-medium">Câmbio:</span>
-              <span class="ml-1">{{ veiculo.cambio }}</span>
+              <span class="font-medium">VIN:</span>
+              <span class="ml-1 text-xs">{{ veiculo.vin | slice:0:8 }}...</span>
             </div>
             <div class="flex items-center">
-              <span class="font-medium text-gray-900">R$ {{ veiculo.precoDia }}/dia</span>
+              <span class="font-medium text-gray-900">{{ formatCurrency(veiculo.dailyRate) }}/dia</span>
             </div>
           </div>
 
@@ -191,3 +191,11 @@
     </div>
   </main>
 </div>
+
+<!-- Modal de Veículo -->
+<app-vehicle-modal
+  #vehicleModal
+  [isOpen]="showVehicleModal"
+  (closeEvent)="closeVehicleModal()"
+  (submitEvent)="onVehicleSubmit($event)">
+</app-vehicle-modal>

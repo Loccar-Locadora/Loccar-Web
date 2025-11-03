@@ -14,7 +14,7 @@
       <button 
         (click)="refreshStats()" 
         [disabled]="isLoadingStats"
-        class="flex items-center space-x-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition">
+        class="flex items-center space-x-2 px-4 py-2 bg-gray-800 hover:bg-gray-900 text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition">
         <i class="bi" [class.bi-arrow-clockwise]="!isLoadingStats" [class.animate-spin]="isLoadingStats"></i>
         <span>{{ isLoadingStats ? 'Carregando...' : 'Atualizar' }}</span>
       </button>
@@ -47,73 +47,45 @@
       </div>
     </section>
 
-    <!-- Mid Grid -->
-    <section class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-      <!-- Receita Card -->
-      <div class="bg-white rounded-lg shadow p-6">
+    <!-- Main Grid with Revenue Chart and Management Cards -->
+    <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <!-- Receita Card - Takes 2 columns on large screens -->
+      <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
         <h3 class="text-xl font-semibold text-gray-800 mb-1">Receita dos Últimos 6 Meses</h3>
         <p class="text-gray-500 mb-4">Evolução mensal do faturamento</p>
-        <div class="h-64 bg-gray-50 rounded flex items-center justify-center">
+        <div class="h-80 bg-gray-50 rounded flex items-center justify-center">
           <!-- Componente do gráfico será inserido aqui -->
           <app-revenue-chart *ngIf="!isLoadingStats"></app-revenue-chart>
         </div>
       </div>
 
-      <!-- Atividade Recente
-      <div class="bg-white rounded-lg shadow p-6">
-        <h3 class="text-xl font-semibold text-gray-800 mb-1">Atividade Recente</h3>
-        <p class="text-gray-500 mb-4">Últimas ações no sistema</p>
-        <div *ngIf="activities$ | async as activities" class="space-y-4">
-          <div *ngFor="let a of activities" class="flex items-start space-x-3 pb-3 border-b border-gray-100 last:border-b-0">
-            <div class="w-2 h-2 mt-2 bg-gray-400 rounded-full flex-shrink-0"></div>
-            <div class="flex-1">
-              <div class="text-gray-800 font-medium text-sm">{{ a.title }}</div>
-              <div class="text-gray-500 text-xs mt-1">{{ a.timeAgo }}</div>
-            </div>
-          </div>
+      <!-- Management Cards Column -->
+      <div class="flex flex-col space-y-6">
+        <!-- Gestão de Usuários -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
+          <h4 class="text-lg font-semibold text-gray-800 mb-4">Gestão de Usuários</h4>
+          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+            <i class="bi bi-people mr-2"></i>
+            Ver Todos os Usuários
+          </button>
+          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+            <i class="bi bi-person-plus mr-2"></i>
+            Adicionar Funcionário
+          </button>
         </div>
-      </div> -->
-    </section>
 
-    <!-- Quick Actions -->
-    <section class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <!-- Gestão de Usuários -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
-        <h4 class="text-lg font-semibold text-gray-800 mb-4">Gestão de Usuários</h4>
-        <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
-          <i class="bi bi-people mr-2"></i>
-          Ver Todos os Usuários
-        </button>
-        <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
-          <i class="bi bi-person-plus mr-2"></i>
-          Adicionar Funcionário
-        </button>
-      </div>
-
-      <!-- Gestão de Frota -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
-        <h4 class="text-lg font-semibold text-gray-800 mb-4">Gestão de Frota</h4>
-        <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
-          <i class="bi bi-car-front mr-2"></i>
-          Ver Todos os Veículos
-        </button>
-        <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
-          <i class="bi bi-plus-circle mr-2"></i>
-          Adicionar Veículo
-        </button>
-      </div>
-
-      <!-- Sistema -->
-      <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
-        <h4 class="text-lg font-semibold text-gray-800 mb-4">Sistema</h4>
-        <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
-          <i class="bi bi-bar-chart mr-2"></i>
-          Relatórios Detalhados
-        </button>
-        <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
-          <i class="bi bi-gear mr-2"></i>
-          Configurações
-        </button>
+        <!-- Gestão de Frota -->
+        <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
+          <h4 class="text-lg font-semibold text-gray-800 mb-4">Gestão de Frota</h4>
+          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+            <i class="bi bi-car-front mr-2"></i>
+            Ver Todos os Veículos
+          </button>
+          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+            <i class="bi bi-plus-circle mr-2"></i>
+            Adicionar Veículo
+          </button>
+        </div>
       </div>
     </section>
   </main>
