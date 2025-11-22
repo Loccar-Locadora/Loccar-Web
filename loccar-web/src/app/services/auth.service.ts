@@ -1,7 +1,7 @@
 import { Injectable, signal, computed, PLATFORM_ID, Inject } from '@angular/core';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-import { tap, catchError } from 'rxjs/operators';
-import { Observable, throwError, BehaviorSubject } from 'rxjs';
+import { tap, catchError, map, switchMap } from 'rxjs/operators';
+import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
 import { isPlatformBrowser } from '@angular/common';
 import { Router } from '@angular/router';
 import { 
@@ -22,6 +22,7 @@ export class AuthService {
   private readonly LOGIN_URL = 'http://localhost:5290/api/auth/login';
   private readonly REGISTER_URL = 'http://localhost:5290/api/auth/register';
   private readonly LOGOUT_URL = 'http://localhost:5290/api/auth/logout';
+  private readonly USER_BY_EMAIL_URL = 'http://localhost:8080/api/user/find/email';
 
   // Estado de autenticação usando BehaviorSubject
   private authStateSubject = new BehaviorSubject<AuthState>({
@@ -49,8 +50,15 @@ export class AuthService {
     const storedToken = this.getTokenFromStorage();
     const storedUser = this.getUserFromStorage();
     
+    console.log('AuthService - Inicialização:');
+    console.log('- Token armazenado:', !!storedToken);
+    console.log('- Usuário armazenado:', storedUser);
+    
     if (storedToken && storedUser) {
       this.updateAuthState(storedToken, storedUser);
+      console.log('- Estado de autenticação restaurado com sucesso');
+    } else {
+      console.log('- Nenhum estado de autenticação encontrado no localStorage');
     }
   }
 
@@ -60,7 +68,7 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(this.LOGIN_URL, credentials)
       .pipe(
-        tap(response => {
+        switchMap(response => {
           // A API retorna: { code: "200", message: "...", data: "jwt_token" }
           const token = response.data; // Token está no campo 'data'
           
@@ -68,56 +76,53 @@ export class AuthService {
             // Salvar o token primeiro (já foi validado pelo backend)
             this.setToken(token);
             
-            // Tentar extrair dados do usuário do JWT (opcional)
-            let user: User;
-            try {
-              // Decodificar JWT de forma mais robusta
-              const parts = token.split('.');
-              if (parts.length !== 3) {
-                throw new Error('Token JWT não tem formato válido');
-              }
-              
-              // Decodificar payload
-              const base64Payload = parts[1];
-              
-              // Adicionar padding se necessário
-              const paddedPayload = base64Payload + '='.repeat((4 - base64Payload.length % 4) % 4);
-              
-              // Decodificar usando decodeURIComponent para lidar com caracteres especiais
-              const decodedBytes = atob(paddedPayload);
-              const payload = JSON.parse(decodeURIComponent(escape(decodedBytes)));
-              
-              console.log('JWT decodificado com sucesso:', payload);
-              
-              // Criar objeto User a partir do payload do JWT
-              user = {
-                id: String(payload.id || ''),
-                username: payload.name || 'Usuário',
-                email: credentials.email, // Usar email do login
-                driverLicense: '', // Não disponível no JWT
-                cellPhone: '', // Não disponível no JWT
-                role: payload.role as any || 'Cliente'
-              };
-              
-            } catch (error) {
-              console.warn('Não foi possível decodificar JWT, usando dados mínimos:', error);
-              
-              // Se não conseguir decodificar, criar usuário com dados mínimos
-              user = {
-                id: '0',
-                username: 'Usuário',
-                email: credentials.email,
-                driverLicense: '',
-                cellPhone: '',
-                role: 'Cliente' as any
-              };
-            }
-            
-            this.setUser(user);
-            this.updateAuthState(token, user);
+            // Buscar dados completos do usuário usando o endpoint /find/email
+            console.log('Login bem-sucedido, buscando dados completos do usuário...');
+            return this.getUserByEmail(credentials.email).pipe(
+              map(userData => {
+                console.log('Dados completos do usuário obtidos:', userData);
+                
+                // Usar os dados completos do usuário retornados pela API
+                const user: User = {
+                  id: String(userData.id || '0'),
+                  username: userData.username || 'Usuário',
+                  email: userData.email || credentials.email,
+                  driverLicense: userData.driverLicense || '',
+                  cellPhone: userData.cellPhone || '',
+                  role: userData.role || 'Cliente'
+                };
+                
+                this.setUser(user);
+                this.updateAuthState(token, user);
+                console.log('Estado de autenticação atualizado com dados completos');
+                
+                // Retornar a resposta original do login
+                return response;
+              }),
+              catchError(error => {
+                console.error('Erro ao buscar dados do usuário, usando dados mínimos:', error);
+                
+                // Se falhar, usar dados mínimos
+                const user: User = {
+                  id: '0',
+                  username: 'Usuário',
+                  email: credentials.email,
+                  driverLicense: '',
+                  cellPhone: '',
+                  role: 'Cliente'
+                };
+                
+                this.setUser(user);
+                this.updateAuthState(token, user);
+                console.log('Estado de autenticação atualizado com dados mínimos');
+                
+                // Mesmo com erro ao buscar dados, o login foi bem-sucedido
+                return of(response);
+              })
+            );
             
           } else {
-            throw new Error('Token não recebido da API');
+            throw new Error('Login ou senha incorretos');
           }
         }),
         catchError(this.handleError)
@@ -322,11 +327,119 @@ export class AuthService {
   }
 
   /**
+   * Verificar se o usuário tem acesso ao dashboard
+   */
+  canAccessDashboard(): boolean {
+    const user = this.getCurrentUser();
+    if (!user || !user.role) return false;
+    
+    // CLIENT_USER/Cliente não tem acesso ao dashboard
+    return user.role !== 'CLIENT_USER' && user.role !== 'Cliente';
+  }
+
+  /**
+   * Verificar se o usuário tem acesso à gestão de usuários
+   */
+  canAccessUserManagement(): boolean {
+    const user = this.getCurrentUser();
+    if (!user || !user.role) return false;
+    
+    // Apenas Admin e Funcionario têm acesso
+    return user.role === 'Admin' || user.role === 'Funcionario';
+  }
+
+  /**
+   * Verificar se o usuário tem acesso à gestão de veículos
+   */
+  canAccessVehicleManagement(): boolean {
+    const user = this.getCurrentUser();
+    if (!user || !user.role) return false;
+    
+    // Todos os tipos de usuário têm acesso aos veículos
+    return true;
+  }
+
+  /**
+   * Verificar se o usuário é CLIENT_USER/Cliente
+   */
+  isClientUser(): boolean {
+    const user = this.getCurrentUser();
+    return user?.role === 'CLIENT_USER' || user?.role === 'Cliente';
+  }
+
+  /**
+   * Verificar se o usuário pode acessar suas reservas
+   */
+  canAccessReservas(): boolean {
+    const user = this.getCurrentUser();
+    if (!user || !user.role) return false;
+    
+    // Todos os usuários autenticados podem ver suas próprias reservas
+    return true;
+  }
+
+  /**
+   * Obter a rota padrão baseada no role do usuário
+   */
+  getDefaultRouteForUser(): string {
+    const user = this.getCurrentUser();
+    
+    if (!user || !user.role) {
+      return '/dashboard';
+    }
+
+    switch (user.role) {
+      case 'CLIENT_USER':
+        return '/veiculos';
+      case 'Admin':
+      case 'Funcionario':
+      case 'Cliente':
+      default:
+        return '/dashboard';
+    }
+  }
+
+  /**
    * Forçar limpeza completa (método público para debug)
    */
   forceClearAuth(): void {
     console.log('Forçando limpeza completa de autenticação...');
     this.clearAllAuthData();
+  }
+
+  /**
+   * Atualizar dados do usuário atual buscando informações completas da API
+   */
+  refreshUserData(): Observable<User> {
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || !currentUser.email) {
+      return throwError(() => new Error('Nenhum usuário logado encontrado'));
+    }
+
+    console.log('Atualizando dados do usuário:', currentUser.email);
+    
+    return this.getUserByEmail(currentUser.email).pipe(
+      tap(userData => {
+        console.log('Dados atualizados do usuário:', userData);
+        
+        const updatedUser: User = {
+          id: String(userData.id || currentUser.id),
+          username: userData.username || currentUser.username,
+          email: userData.email || currentUser.email,
+          driverLicense: userData.driverLicense || currentUser.driverLicense,
+          cellPhone: userData.cellPhone || currentUser.cellPhone,
+          role: userData.role || currentUser.role
+        };
+        
+        this.setUser(updatedUser);
+        this.currentUser$.next(updatedUser);
+        console.log('Dados do usuário atualizados na sidebar');
+      }),
+      catchError(error => {
+        console.error('Erro ao atualizar dados do usuário:', error);
+        return throwError(() => error);
+      })
+    );
   }
 
   /**
@@ -381,20 +494,106 @@ export class AuthService {
    * Recuperar token do localStorage
    */
   private getTokenFromStorage(): string | null {
+    console.log('getTokenFromStorage - verificando localStorage...');
+    console.log('- isPlatformBrowser:', isPlatformBrowser(this.platformId));
+    
     if (isPlatformBrowser(this.platformId)) {
-      return localStorage.getItem('auth_token');
+      const token = localStorage.getItem('auth_token');
+      console.log('- token do localStorage:', token ? token.substring(0, 20) + '...' : 'null');
+      return token;
     }
+    
+    console.log('- não é browser, retornando null');
     return null;
+  }
+
+  /**
+   * Buscar dados completos do usuário por email
+   */
+  private getUserByEmail(email: string): Observable<User> {
+    console.log('Fazendo requisição GET para:', `${this.USER_BY_EMAIL_URL}?email=${encodeURIComponent(email)}`);
+    
+    return this.http.get<any>(`${this.USER_BY_EMAIL_URL}?email=${encodeURIComponent(email)}`)
+      .pipe(
+        tap(response => {
+          console.log('=== RESPOSTA COMPLETA DA API getUserByEmail ===');
+          console.log('Tipo da resposta:', typeof response);
+          console.log('Resposta completa:', JSON.stringify(response, null, 2));
+          console.log('Propriedades da resposta:', Object.keys(response));
+          
+          if (response.data) {
+            console.log('=== DADOS DO USUÁRIO (response.data) ===');
+            console.log('Tipo de data:', typeof response.data);
+            console.log('Data completa:', JSON.stringify(response.data, null, 2));
+            console.log('Propriedades de data:', Object.keys(response.data));
+          }
+        }),
+        map(response => {
+          // Verificar diferentes estruturas possíveis de resposta
+          let userData = null;
+          
+          if (response.data) {
+            userData = response.data;
+          } else if (response.user) {
+            userData = response.user;
+          } else if (response.result) {
+            userData = response.result;
+          } else {
+            // Se não tem wrapper, talvez a resposta seja diretamente o usuário
+            userData = response;
+          }
+          
+          console.log('=== DADOS EXTRAÍDOS PARA MAPEAMENTO ===');
+          console.log('userData:', JSON.stringify(userData, null, 2));
+          
+          if (!userData) {
+            throw new Error('Dados do usuário não encontrados na resposta');
+          }
+          
+          // Criar objeto User mapeando os campos da resposta real
+          const mappedUser: User = {
+            id: String(userData.id || '0'),
+            username: userData.name || userData.username || userData.userName || userData.fullName || 'Usuário',
+            email: userData.email || email,
+            driverLicense: userData.driverLicense || '',
+            cellPhone: userData.cellphone || userData.cellPhone || '',
+            role: this.mapRoleFromArray(userData.roles) || 'Cliente'
+          };
+          
+          console.log('=== USUÁRIO MAPEADO FINAL ===');
+          console.log('mappedUser:', JSON.stringify(mappedUser, null, 2));
+          
+          return mappedUser;
+        }),
+        catchError(error => {
+          console.error('=== ERRO ao buscar usuário por email ===');
+          console.error('Status:', error.status);
+          console.error('Mensagem:', error.message);
+          console.error('Corpo do erro:', error.error);
+          console.error('Erro completo:', error);
+          return throwError(() => error);
+        })
+      );
   }
 
   /**
    * Recuperar usuário do localStorage
    */
   private getUserFromStorage(): User | null {
+    console.log('getUserFromStorage - verificando localStorage...');
+    console.log('- isPlatformBrowser:', isPlatformBrowser(this.platformId));
+    
     if (isPlatformBrowser(this.platformId)) {
       const userJson = localStorage.getItem('auth_user');
-      return userJson ? JSON.parse(userJson) : null;
+      console.log('- userJson do localStorage:', userJson);
+      
+      const user = userJson ? JSON.parse(userJson) : null;
+      console.log('- usuário parseado:', user);
+      
+      return user;
     }
+    
+    console.log('- não é browser, retornando null');
     return null;
   }
 
@@ -402,6 +601,8 @@ export class AuthService {
    * Atualizar estado de autenticação
    */
   private updateAuthState(token: string, user: User): void {
+    console.log('AuthService - updateAuthState chamado:', user);
+    
     // Atualizar signal
     this._token.set(token);
     
@@ -414,6 +615,67 @@ export class AuthService {
     this.authStateSubject.next(authState);
     this.isAuthenticated$.next(true);
     this.currentUser$.next(user);
+    
+    console.log('AuthService - Estado atualizado. Usuário emitido para currentUser$:', user);
+  }
+
+  /**
+   * Mapear array de roles da API para role única do sistema
+   */
+  private mapRoleFromArray(roles: string[]): 'Admin' | 'Cliente' | 'Funcionario' {
+    if (!roles || !Array.isArray(roles) || roles.length === 0) {
+      return 'Cliente';
+    }
+    
+    console.log('Mapeando roles do array:', roles);
+    
+    // Verificar se tem role de admin (prioridade mais alta)
+    if (roles.some(role => 
+      role.toLowerCase().includes('admin') || 
+      role.toLowerCase().includes('client_admin') ||
+      role.toLowerCase().includes('administrator')
+    )) {
+      console.log('Role mapeada para: Admin');
+      return 'Admin';
+    }
+    
+    // Verificar se tem role de funcionário
+    if (roles.some(role => 
+      role.toLowerCase().includes('funcionario') || 
+      role.toLowerCase().includes('employee') || 
+      role.toLowerCase().includes('staff') ||
+      role.toLowerCase().includes('worker')
+    )) {
+      console.log('Role mapeada para: Funcionario');
+      return 'Funcionario';
+    }
+    
+    // Por padrão, considerar cliente
+    console.log('Role mapeada para: Cliente');
+    return 'Cliente';
+  }
+
+  /**
+   * Normalizar role do usuário para os valores aceitos
+   */
+  private normalizeRole(role: any): 'Admin' | 'Cliente' | 'Funcionario' | 'CLIENT_USER' {
+    if (!role) return 'Cliente';
+    
+    // Se for um array, pegar o primeiro elemento
+    let roleStr = Array.isArray(role) ? role[0] : role;
+    roleStr = String(roleStr).toLowerCase();
+    
+    console.log('Normalizando role:', role, '->', roleStr);
+    
+    if (roleStr.includes('admin') || roleStr.includes('administrator') || roleStr.includes('gerente')) {
+      return 'Admin';
+    } else if (roleStr.includes('funcionario') || roleStr.includes('employee') || roleStr.includes('staff') || roleStr.includes('worker')) {
+      return 'Funcionario';
+    } else if (roleStr.includes('client_user') || roleStr === 'client_user') {
+      return 'CLIENT_USER';
+    } else {
+      return 'Cliente';
+    }
   }
 
   /**

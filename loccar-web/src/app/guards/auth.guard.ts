@@ -6,11 +6,14 @@ export const authGuard = () => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
-  if (authService.isAuthenticated()) {
+  const isAuthenticated = authService.isAuthenticated();
+  console.log('🛡️ AuthGuard:', isAuthenticated ? 'PERMITIDO' : 'NEGADO', '- URL:', router.url);
+
+  if (isAuthenticated) {
     return true;
   }
 
-  console.warn('Acesso negado. Redirecionando para login...');
+  console.warn('❌ AuthGuard - Redirecionando para login...');
   
   // Salvar a URL atual para redirecionar após login
   const currentUrl = router.url;

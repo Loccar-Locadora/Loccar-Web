@@ -15,7 +15,7 @@
 
   <!-- User Info -->
   <div class="p-6 flex items-center space-x-3 border-b border-gray-200">
-    <div class="w-10 h-10 bg-[oklch(.646_.222_280.116)] text-black font-bold flex items-center justify-center rounded-full">
+    <div class="w-10 h-10 bg-gradient-to-br from-purple-500 to-purple-600 text-white font-bold flex items-center justify-center rounded-full">
       {{ (currentUser?.username | slice:0:2) || 'US' | uppercase }}
     </div>
     <div>
@@ -26,20 +26,40 @@
 
   <!-- Navigation Menu -->
   <nav class="flex-1 p-6 flex flex-col space-y-2">
-    <a routerLink="/dashboard" routerLinkActive="bg-[oklch(.646_.222_280.116)] text-black font-semibold" 
-       class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-[oklch(.646_.222_280.116)] hover:text-white transition">
+    <!-- Dashboard - apenas para usuários que não são CLIENT_USER -->
+    <a *ngIf="canAccessDashboard()" 
+       routerLink="/dashboard" 
+       routerLinkActive="bg-purple-600 text-white font-semibold" 
+       class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-purple-100 hover:text-purple-700 transition">
       <i class="bi bi-house"></i>
       <span>Dashboard</span>
     </a>
-    <a routerLink="/usuarios" routerLinkActive="bg-[oklch(.646_.222_280.116)] text-black font-semibold" 
-       class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-[oklch(.646_.222_280.116)] hover:text-white transition">
+    
+    <!-- Gestão de Usuários - apenas para Admin e Funcionario -->
+    <a *ngIf="canAccessUserManagement()" 
+       routerLink="/usuarios" 
+       routerLinkActive="bg-purple-600 text-white font-semibold" 
+       class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-purple-100 hover:text-purple-700 transition">
       <i class="bi bi-people"></i>
       <span>Gestão de Usuários</span>
     </a>
-    <a routerLink="/veiculos" routerLinkActive="bg-[oklch(.646_.222_280.116)] text-black font-semibold" 
-       class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-[oklch(.646_.222_280.116)] hover:text-white transition">
+    
+    <!-- Minhas Reservas - para todos os usuários -->
+    <a *ngIf="canAccessReservas()" 
+       routerLink="/minhas-reservas" 
+       routerLinkActive="bg-purple-600 text-white font-semibold" 
+       class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-purple-100 hover:text-purple-700 transition">
+      <i class="bi bi-calendar-check"></i>
+      <span>Minhas Reservas</span>
+    </a>
+
+    <!-- Gestão de Veículos / Veículos Disponíveis - texto dinâmico baseado no role -->
+    <a *ngIf="canAccessVehicleManagement()" 
+       [routerLink]="getVehicleRoute()" 
+       routerLinkActive="bg-purple-600 text-white font-semibold" 
+       class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-purple-100 hover:text-purple-700 transition">
       <i class="bi bi-car-front"></i>
-      <span>Gestão de Veículos</span>
+      <span>{{ getVehicleLabel() }}</span>
     </a>
     <!-- <a routerLink="/relatorios" routerLinkActive="bg-[oklch(.646_.222_280.116)] text-black font-semibold" 
        class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-[oklch(.646_.222_280.116)] hover:text-white transition">

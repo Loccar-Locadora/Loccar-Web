@@ -19,7 +19,7 @@ export interface User {
   email: string;
   driverLicense: string;
   cellPhone: string;
-  role?: 'Admin' | 'Cliente' | 'Funcionario';
+  role?: 'Admin' | 'Cliente' | 'Funcionario' | 'CLIENT_USER';
   createdAt?: string;
   updatedAt?: string;
 }

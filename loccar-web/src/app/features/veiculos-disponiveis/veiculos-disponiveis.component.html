@@ -1,0 +1,301 @@
+<!-- Veículos Disponíveis -->
+<div class="flex min-h-screen bg-gray-100">
+  <!-- Sidebar -->
+  <app-sidebar class="w-64 fixed h-full bg-white shadow-md"></app-sidebar>
+
+  <!-- Main Content -->
+  <main class="flex-1 ml-64 p-6">
+    <!-- Header -->
+    <div class="flex justify-between items-start mb-6">
+      <header>
+        <h1 class="text-3xl font-bold text-gray-800">Veículos Disponíveis</h1>
+        <p class="text-gray-500 mt-1">Escolha o veículo ideal para sua viagem</p>
+      </header>
+      
+      <!-- Botões de Ação -->
+      <div class="flex space-x-2">
+        <button 
+          (click)="testarReserva()" 
+          class="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-1 transition text-sm">
+          <i class="bi bi-calendar-plus"></i>
+          <span>Testar Reserva</span>
+        </button>
+        <button 
+          (click)="mostrarInfoDebug()" 
+          class="bg-gray-500 hover:bg-gray-600 text-white font-medium py-2 px-3 rounded-lg flex items-center space-x-1 transition text-sm">
+          <i class="bi bi-info-circle"></i>
+          <span>Debug</span>
+        </button>
+        <button 
+          (click)="recarregar()" 
+          [disabled]="loading"
+          class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg flex items-center space-x-2 transition disabled:opacity-50">
+          <i class="bi bi-arrow-clockwise" [class.spin]="loading"></i>
+          <span>{{ loading ? 'Carregando...' : 'Atualizar' }}</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <section *ngIf="!loading && !erro" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-600">Total Disponível</h3>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-100">
+            <i class="bi bi-car-front text-purple-600 text-lg"></i>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-gray-900">{{ veiculos.length }}</div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-600">Carros de Passeio</h3>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-green-100">
+            <i class="bi bi-people text-green-600 text-lg"></i>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-gray-900">{{ getVeiculosPorTipo(2) }}</div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-600">Veículos de Carga</h3>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-purple-100">
+            <i class="bi bi-truck text-purple-600 text-lg"></i>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-gray-900">{{ getVeiculosPorTipo(0) }}</div>
+      </div>
+
+      <div class="bg-white rounded-lg shadow p-6 hover:shadow-md transition">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-medium text-gray-600">Motocicletas</h3>
+          <div class="w-8 h-8 rounded-lg flex items-center justify-center bg-orange-100">
+            <i class="bi bi-bicycle text-orange-600 text-lg"></i>
+          </div>
+        </div>
+        <div class="text-3xl font-bold text-gray-900">{{ getVeiculosPorTipo(1) }}</div>
+      </div>
+    </section>
+
+    <!-- Loading State -->
+    <div *ngIf="loading" class="flex justify-center items-center py-16">
+      <div class="flex flex-col items-center space-y-4">
+        <div class="w-12 h-12 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+        <div class="text-center">
+          <p class="text-gray-900 font-medium">Carregando veículos disponíveis...</p>
+          <p class="text-gray-500 text-sm">Aguarde um momento</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="erro && !loading" class="bg-red-50 border border-red-200 rounded-lg p-6 mb-6">
+      <div class="flex items-start">
+        <div class="flex-shrink-0">
+          <i class="bi bi-exclamation-triangle text-red-400 text-xl"></i>
+        </div>
+        <div class="ml-3 flex-1">
+          <h3 class="text-sm font-medium text-red-800">Problema ao carregar veículos</h3>
+          <p class="mt-1 text-sm text-red-700">{{ erro }}</p>
+          
+          <!-- Debug info quando for erro de servidor -->
+          <div *ngIf="erro.includes('Servidor temporariamente indisponível')" 
+               class="mt-3 text-xs text-red-600 bg-red-100 p-2 rounded">
+            <i class="bi bi-info-circle mr-1"></i>
+            Exibindo dados de exemplo. A API real não está respondendo.
+          </div>
+          
+          <div class="mt-4">
+            <div class="flex space-x-3">
+              <button 
+                (click)="recarregar()" 
+                class="bg-red-100 hover:bg-red-200 text-red-800 text-sm font-medium px-4 py-2 rounded-lg transition">
+                <i class="bi bi-arrow-clockwise mr-1"></i>
+                Tentar novamente
+              </button>
+              <button 
+                (click)="mostrarInfoDebug()" 
+                class="bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium px-4 py-2 rounded-lg transition">
+                <i class="bi bi-bug mr-1"></i>
+                Ver Debug
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Filtros e Busca -->
+    <section *ngIf="!loading && !erro" class="bg-white rounded-lg shadow p-6 mb-6">
+      <div class="flex flex-col lg:flex-row gap-4 items-center justify-between">
+        <!-- Campo de busca -->
+        <div class="relative flex-1 max-w-md w-full lg:w-auto">
+          <i class="bi bi-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+          <input
+            type="text"
+            placeholder="Buscar veículos..."
+            [(ngModel)]="termoPesquisa"
+            (input)="aplicarFiltros()"
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+        </div>
+
+        <!-- Filtros -->
+        <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
+          <!-- Filtro por categoria -->
+          <select 
+            [(ngModel)]="filtroCategoria"
+            (change)="aplicarFiltros()"
+            class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            <option *ngFor="let categoria of categorias" [value]="categoria.valor">
+              {{ categoria.label }}
+            </option>
+          </select>
+
+          <!-- Filtro por preço -->
+          <select 
+            [(ngModel)]="filtroPreco"
+            (change)="aplicarFiltros()"
+            class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+            <option *ngFor="let faixa of faixasPreco" [value]="faixa.valor">
+              {{ faixa.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Resultado da busca -->
+      <div class="mt-4 text-sm text-gray-600">
+        <span class="font-medium">{{ veiculosFiltrados.length }}</span> 
+        {{ veiculosFiltrados.length === 1 ? 'veículo encontrado' : 'veículos encontrados' }}
+      </div>
+    </section>
+
+    <!-- Grid de Veículos -->
+    <section *ngIf="!loading && !erro" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div *ngFor="let veiculo of veiculosFiltrados" 
+           class="bg-white rounded-lg shadow hover:shadow-lg transition-shadow duration-200 overflow-hidden">
+        
+        <!-- Imagem do Veículo -->
+        <div class="relative">
+          <img 
+            [src]="getImagemVeiculo(veiculo)" 
+            [alt]="veiculo.brand + ' ' + veiculo.model"
+            class="w-full h-48 object-cover bg-gray-200"
+            onerror="this.src='assets/images/car-placeholder.svg'">
+          
+          <!-- Badge de Categoria -->
+          <div class="absolute top-4 left-4">
+            <span 
+              class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+              {{ getTipoTexto(veiculo.type) }}
+            </span>
+          </div>
+
+          <!-- Badge de Preço -->
+          <div class="absolute top-4 right-4">
+            <span 
+              class="inline-flex items-center px-3 py-1 rounded-full text-sm font-bold bg-green-100 text-green-800">
+              {{ formatarPreco(veiculo.dailyRate) }}/dia
+            </span>
+          </div>
+        </div>
+
+        <!-- Conteúdo do Card -->
+        <div class="p-6">
+          <!-- Header do veículo -->
+          <div class="flex justify-between items-start mb-3">
+            <div>
+              <h3 class="text-lg font-semibold text-gray-900 mb-1">{{ veiculo.brand }} {{ veiculo.model }}</h3>
+              <p class="text-gray-600 text-sm">{{ veiculo.manufacturingYear }}/{{ veiculo.modelYear }}</p>
+            </div>
+          </div>
+
+          <!-- Especificações -->
+          <div class="grid grid-cols-2 gap-3 mb-4 text-sm text-gray-600">
+            <div class="flex items-center">
+              <i class="bi bi-fuel-pump mr-2 text-purple-500"></i>
+              <span>{{ veiculo.fuelTankCapacity }}L</span>
+            </div>
+            <div class="flex items-center">
+              <i class="bi bi-tag mr-2 text-purple-500"></i>
+              <span class="text-xs">{{ veiculo.vin | slice:0:8 }}...</span>
+            </div>
+            <div *ngIf="veiculo.passengerVehicle" class="flex items-center">
+              <i class="bi bi-people mr-2 text-purple-500"></i>
+              <span>{{ veiculo.passengerVehicle.passengerCapacity }} lugares</span>
+            </div>
+            <div *ngIf="veiculo.passengerVehicle?.airConditioning" class="flex items-center">
+              <i class="bi bi-snow2 mr-2 text-purple-500"></i>
+              <span>Ar condicionado</span>
+            </div>
+            <div *ngIf="veiculo.cargoVehicle" class="flex items-center">
+              <i class="bi bi-box mr-2 text-purple-500"></i>
+              <span>{{ veiculo.cargoVehicle.cargoCapacity }}kg</span>
+            </div>
+            <div *ngIf="veiculo.motorcycle" class="flex items-center">
+              <i class="bi bi-shield-check mr-2 text-purple-500"></i>
+              <span>{{ veiculo.motorcycle.absBrakes ? 'ABS' : 'Sem ABS' }}</span>
+            </div>
+            <div *ngIf="veiculo.leisureVehicle" class="flex items-center">
+              <i class="bi bi-gear mr-2 text-purple-500"></i>
+              <span>{{ veiculo.leisureVehicle.automatic ? 'Automático' : 'Manual' }}</span>
+            </div>
+            <div *ngIf="veiculo.leisureVehicle?.airConditioning" class="flex items-center">
+              <i class="bi bi-snow2 mr-2 text-purple-500"></i>
+              <span>Ar condicionado</span>
+            </div>
+          </div>
+
+          <!-- Preços adicionais -->
+          <div class="mb-4 text-sm">
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-gray-600">Diária padrão:</span>
+              <span class="font-semibold text-gray-900">{{ formatarPreco(veiculo.dailyRate) }}</span>
+            </div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-gray-600">Mensal:</span>
+              <span class="font-semibold text-gray-900">{{ formatarPreco(veiculo.monthlyRate) }}</span>
+            </div>
+            <div class="flex justify-between items-center">
+              <span class="text-gray-600">Empresarial:</span>
+              <span class="font-semibold text-gray-900">{{ formatarPreco(veiculo.companyDailyRate) }}</span>
+            </div>
+          </div>
+
+          <!-- Botão de Reserva -->
+          <div class="pt-4 border-t border-gray-200">
+            <button
+              (click)="reservarVeiculo(veiculo)"
+              class="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-4 py-3 rounded-lg transition flex items-center justify-center space-x-2">
+              <i class="bi bi-calendar-plus"></i>
+              <span>Reservar Veículo</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Empty State (quando não há veículos) -->
+    <div *ngIf="!loading && !erro && veiculosFiltrados.length === 0" 
+         class="text-center py-12">
+      <i class="bi bi-car-front text-gray-400 text-6xl mb-4"></i>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Nenhum veículo encontrado</h3>
+      <p class="text-gray-500 mb-6">Tente ajustar os filtros de busca</p>
+      <button 
+        (click)="limparFiltros()"
+        class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg">
+        Limpar Filtros
+      </button>
+    </div>
+  </main>
+</div>
+
+<!-- Modal de Reserva -->
+<app-reserva-modal
+  [isOpen]="showReservaModal"
+  [veiculo]="selectedVeiculo"
+  (closeEvent)="closeReservaModal()"
+  (reservaConfirmada)="onReservaConfirmada($event)">
+</app-reserva-modal>

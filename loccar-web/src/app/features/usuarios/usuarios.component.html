@@ -30,15 +30,14 @@
           <div 
             class="w-8 h-8 rounded-lg flex items-center justify-center"
             [ngClass]="{
-              'bg-blue-100': stat.color === 'blue',
+              'bg-purple-100': stat.color === 'blue' || stat.color === 'purple',
               'bg-green-100': stat.color === 'green', 
-              'bg-purple-100': stat.color === 'purple',
               'bg-red-100': stat.color === 'red'
             }">
             <i 
               class="text-lg"
               [ngClass]="{
-                'bi bi-people text-blue-600': stat.icon === 'people',
+                'bi bi-people text-purple-600': stat.icon === 'people',
                 'bi bi-person text-green-600': stat.icon === 'person',
                 'bi bi-person-badge text-purple-600': stat.icon === 'badge',
                 'bi bi-shield-check text-red-600': stat.icon === 'admin_panel_settings'
@@ -62,7 +61,7 @@
             placeholder="Buscar usuários..."
             #searchInput
             (input)="onBuscaChange(searchInput.value)"
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
         </div>
 
         <!-- Filtro por tipo -->
@@ -70,7 +69,7 @@
           <select 
             #filterSelect
             (change)="onFiltroChange(filterSelect.value)"
-            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
             <option value="todos">Todos os papéis</option>
             <option value="Cliente">Clientes</option>
             <option value="Funcionario">Funcionários</option>
@@ -151,7 +150,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                 <button
                   (click)="editarUsuario(usuario)"
-                  class="text-blue-600 hover:text-blue-900 transition">
+                  class="text-purple-600 hover:text-purple-900 transition">
                   <i class="bi bi-pencil"></i>
                 </button>
                 <button
@@ -166,4 +165,26 @@
       </div>
     </section>
   </main>
+
+  <!-- Modal de Cadastro / Edição de Usuário -->
+  <app-user-modal
+    [isOpen]="isUserModalOpen"
+    [isEditMode]="isEditMode"
+    [userData]="selectedUserData"
+    (closeEvent)="onCloseUserModal()"
+    (submitEvent)="onUserSubmit($event)">
+  </app-user-modal>
+
+  <!-- Modal de Confirmação para Exclusão -->
+  <app-confirmation-modal
+    [isOpen]="isConfirmationModalOpen"
+    title="Excluir Usuário"
+    message="Tem certeza que deseja excluir este usuário?"
+    description="Esta ação não pode ser desfeita."
+    confirmText="Excluir"
+    cancelText="Cancelar"
+    [isLoading]="isDeleting"
+    (confirmEvent)="onConfirmDelete()"
+    (cancelEvent)="onCancelDelete()">
+  </app-confirmation-modal>
 </div>

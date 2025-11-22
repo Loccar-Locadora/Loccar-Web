@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#fef3c7"/>
+  <path d="M60 120h280l30 50v70h-25v25h-50v-25h-190v25h-50v-25h-25v-70l30-50z" fill="#f59e0b"/>
+  <circle cx="140" cy="220" r="22" fill="#1f2937"/>
+  <circle cx="260" cy="220" r="22" fill="#1f2937"/>
+  <rect x="90" y="140" width="220" height="45" fill="#fbbf24"/>
+  <rect x="50" y="150" width="300" height="15" fill="#d97706"/>
+  <text x="200" y="280" text-anchor="middle" fill="#b45309" font-family="Arial, sans-serif" font-size="14">Veículo de Carga</text>
+</svg>

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#ecfdf5"/>
+  <path d="M70 120h260l25 40v80h-25v20h-45v-20h-170v20h-45v-20h-25v-80l25-40z" fill="#10b981"/>
+  <circle cx="130" cy="220" r="20" fill="#374151"/>
+  <circle cx="270" cy="220" r="20" fill="#374151"/>
+  <rect x="90" y="140" width="220" height="40" fill="#6ee7b7"/>
+  <rect x="110" y="120" width="180" height="20" fill="#34d399"/>
+  <text x="200" y="280" text-anchor="middle" fill="#047857" font-family="Arial, sans-serif" font-size="14">Veículo de Passeio</text>
+</svg>

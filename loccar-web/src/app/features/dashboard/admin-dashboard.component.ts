@@ -23,7 +23,8 @@ export class AdminDashboardComponent implements OnInit {
   
   constructor(
     private authService: AuthService,
-    private dashboardService: DashboardService
+    private dashboardService: DashboardService,
+    private router: Router
   ) {
     // Inicializar atividades com dados mock
     this.activities$ = new Observable<ActivityItem[]>(observer => {
@@ -119,6 +120,44 @@ export class AdminDashboardComponent implements OnInit {
   refreshStats(): void {
     console.log('Recarregando estatísticas...');
     this.loadDashboardStats();
+  }
+
+  /**
+   * Navegar para página de gestão de usuários
+   */
+  verTodosUsuarios(): void {
+    console.log('Navegando para gestão de usuários...');
+    this.router.navigate(['/usuarios']);
+  }
+
+  /**
+   * Navegar para página de gestão de veículos
+   */
+  verTodosVeiculos(): void {
+    console.log('Navegando para gestão de veículos...');
+    this.router.navigate(['/veiculos']);
+  }
+
+  /**
+   * Abrir modal de adição de funcionário
+   */
+  adicionarFuncionario(): void {
+    console.log('Abrindo modal para adicionar funcionário...');
+    // Navegar para usuários e abrir modal de criação
+    this.router.navigate(['/usuarios'], { 
+      queryParams: { action: 'create' } 
+    });
+  }
+
+  /**
+   * Abrir modal de adição de veículo
+   */
+  adicionarVeiculo(): void {
+    console.log('Abrindo modal para adicionar veículo...');
+    // Navegar para veículos e abrir modal de criação
+    this.router.navigate(['/veiculos'], { 
+      queryParams: { action: 'create' } 
+    });
   }
 
   /**

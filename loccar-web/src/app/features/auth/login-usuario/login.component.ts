@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
+import { RedirectService } from '../../../services/redirect.service';
 import { CommonModule } from '@angular/common';
 import { Subscription } from 'rxjs';
 import { LoginRequest } from '../../../core/models/auth.models';
@@ -19,13 +20,14 @@ export class LoginComponent implements OnInit, OnDestroy {
   successMessage: string = '';
   isLoading: boolean = false;
   showPassword: boolean = false;
-  returnUrl: string = '/dashboard';
+  returnUrl: string = '';
   
   private subscriptions = new Subscription();
 
   constructor(
     private formBuilder: FormBuilder,
     private authService: AuthService,
+    private redirectService: RedirectService,
     private router: Router,
     private route: ActivatedRoute
   ) {}
@@ -33,8 +35,8 @@ export class LoginComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.initializeForm();
     
-    // Obter URL de retorno dos query params
-    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '/dashboard';
+    // Obter URL de retorno dos query params ou usar redirecionamento inteligente
+    this.returnUrl = this.route.snapshot.queryParams['returnUrl'] || '';
     
     // Verificar se já está logado (com pequeno delay para garantir que logout foi processado)
     setTimeout(() => {
@@ -42,8 +44,9 @@ export class LoginComponent implements OnInit, OnDestroy {
       console.log('Login ngOnInit - token existe:', !!this.authService.getToken());
       
       if (this.authService.isAuthenticated()) {
-        console.log('Usuário já logado, redirecionando para:', this.returnUrl);
-        this.router.navigate([this.returnUrl]);
+        const redirectUrl = this.getRedirectUrl();
+        console.log('Usuário já logado, redirecionando para:', redirectUrl);
+        this.router.navigate([redirectUrl]);
       }
     }, 100);
 
@@ -83,20 +86,31 @@ export class LoginComponent implements OnInit, OnDestroy {
     const loginSub = this.authService.login(credentials)
       .subscribe({
         next: (response) => {
-          console.log('Login component - resposta recebida:', response);
-          this.isLoading = false;
+          console.log('Login concluído com sucesso:', response);
           
-          // Verificar se está autenticado após processamento
-          console.log('Verificando autenticação após login...');
-          console.log('isAuthenticated():', this.authService.isAuthenticated());
-          console.log('Token existe:', !!this.authService.getToken());
-          console.log('Usuário atual:', this.authService.getCurrentUser());
-          
-          // Login bem-sucedido, redirecionar para dashboard
+          // Aguardar um ciclo para garantir que todos os dados foram persistidos
           setTimeout(() => {
-            console.log('Redirecionando para:', this.returnUrl);
-            this.router.navigate([this.returnUrl]);
-          }, 100);
+            console.log('Verificando autenticação após login...');
+            console.log('- isAuthenticated():', this.authService.isAuthenticated());
+            console.log('- getCurrentUser():', this.authService.getCurrentUser());
+            console.log('- getToken():', !!this.authService.getToken());
+            
+            const currentUser = this.authService.getCurrentUser();
+            
+            if (currentUser && this.authService.isAuthenticated()) {
+              console.log('✅ Login concluído, iniciando redirecionamento...');
+              this.isLoading = false;
+              
+              // Usar o serviço de redirecionamento dedicado
+              this.redirectService.redirectAfterLogin();
+            } else {
+              console.error('❌ Dados de autenticação não estão disponíveis após login');
+              console.error('- currentUser:', currentUser);
+              console.error('- isAuthenticated:', this.authService.isAuthenticated());
+              this.isLoading = false;
+              this.errorMessage = 'Erro interno. Tente fazer login novamente.';
+            }
+          }, 100); // Pequeno delay para garantir persistência
         },
         error: (error) => {
           console.error('Erro no login:', error);
@@ -152,5 +166,64 @@ export class LoginComponent implements OnInit, OnDestroy {
       return 'Senha deve ter pelo menos 3 caracteres';
     }
     return '';
+  }
+
+  /**
+   * Determina a URL de redirecionamento baseada no role do usuário
+   */
+  private getRedirectUrl(): string {
+    // Se foi especificada uma URL de retorno nos query params, usar ela
+    if (this.returnUrl) {
+      console.log('Usando returnUrl dos query params:', this.returnUrl);
+      return this.returnUrl;
+    }
+
+    // Caso contrário, usar lógica baseada no role
+    const currentUser = this.authService.getCurrentUser();
+    console.log('Determinando redirect baseado no usuário:', currentUser);
+    
+    if (currentUser?.role === 'CLIENT_USER') {
+      console.log('✅ CLIENT_USER detectado - redirecionando para /veiculos');
+      return '/veiculos';
+    } else if (currentUser?.role === 'Admin' || currentUser?.role === 'Funcionario') {
+      console.log(`✅ ${currentUser.role} detectado - redirecionando para /dashboard`);
+      return '/dashboard';
+    } else {
+      // Fallback para veículos se role não for reconhecido (mais seguro para CLIENT_USER)
+      console.log('⚠️ Role não reconhecido:', currentUser?.role, '- redirecionando para /veiculos como fallback');
+      return '/veiculos';
+    }
+  }
+
+  /**
+   * Tenta redirecionar com diferentes estratégias
+   */
+  private attemptRedirect(url: string): void {
+    console.log('🔄 Tentativa 1: router.navigate()');
+    
+    this.router.navigate([url]).then(success => {
+      if (success) {
+        console.log('✅ Redirecionamento bem-sucedido via navigate()');
+      } else {
+        console.log('❌ router.navigate() falhou, tentando navigateByUrl()');
+        this.router.navigateByUrl(url).then(success2 => {
+          if (success2) {
+            console.log('✅ Redirecionamento bem-sucedido via navigateByUrl()');
+          } else {
+            console.log('❌ navigateByUrl() também falhou, tentando window.location');
+            // Último recurso: usar window.location
+            setTimeout(() => {
+              console.log('🔄 Tentativa 3: window.location.href');
+              window.location.href = url;
+            }, 100);
+          }
+        });
+      }
+    }).catch(error => {
+      console.error('❌ Erro no redirecionamento:', error);
+      // Fallback para window.location
+      console.log('🔄 Fallback: usando window.location');
+      window.location.href = url;
+    });
   }
 }

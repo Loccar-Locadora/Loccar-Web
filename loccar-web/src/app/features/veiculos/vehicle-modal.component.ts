@@ -1,8 +1,12 @@
-import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { VehicleService } from '../../services/vehicle.service';
 
 export interface VehicleFormData {
+  // ID para edição
+  idVehicle?: string | number;
+  
   // Dados básicos
   brand: string;
   model: string;
@@ -16,7 +20,7 @@ export interface VehicleFormData {
   vin: string;
   imgUrl: string;
   
-  // Tipo do veículo
+  // Tipo do veículo (string no formulário, será convertido para número na API)
   vehicleType: 'cargo' | 'passenger' | 'leisure' | 'motorcycle';
   
   // Dados específicos por tipo
@@ -57,7 +61,7 @@ export interface VehicleFormData {
       <div class="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[90vh] overflow-auto">
         <!-- Header -->
         <div class="flex items-center justify-between p-6 border-b border-gray-200">
-          <h2 class="text-xl font-semibold text-gray-900">Adicionar Veículo</h2>
+          <h2 class="text-xl font-semibold text-gray-900">{{ isEditMode ? 'Editar Veículo' : 'Adicionar Veículo' }}</h2>
           <button (click)="closeModal()" class="text-gray-400 hover:text-gray-600">
             <i class="bi bi-x-lg text-xl"></i>
           </button>
@@ -65,7 +69,7 @@ export interface VehicleFormData {
 
         <!-- Form -->
         <form [formGroup]="vehicleForm" (ngSubmit)="onSubmit()" class="p-6">
-          <p class="text-gray-600 mb-6">Adicione um novo veículo à frota</p>
+          <p class="text-gray-600 mb-6">{{ isEditMode ? 'Edite os dados do veículo' : 'Adicione um novo veículo à frota' }}</p>
 
           <!-- Dados Básicos -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -330,8 +334,18 @@ export interface VehicleFormData {
             </div>
           </div>
 
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="mt-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded-md">
+            {{ errorMessage }}
+          </div>
+
+          <!-- Success Message -->
+          <div *ngIf="successMessage" class="mt-4 p-3 bg-green-100 border border-green-400 text-green-700 rounded-md">
+            {{ successMessage }}
+          </div>
+
           <!-- Actions -->
-          <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200">
+          <div class="flex justify-end space-x-3 pt-6 border-t border-gray-200 mt-6">
             <button
               type="button"
               (click)="closeModal()"
@@ -359,8 +373,10 @@ export interface VehicleFormData {
     }
   `]
 })
-export class VehicleModalComponent implements OnInit {
+export class VehicleModalComponent implements OnInit, OnChanges {
   @Input() isOpen = false;
+  @Input() vehicleData: VehicleFormData | null = null;
+  @Input() isEditMode = false;
   @Output() closeEvent = new EventEmitter<void>();
   @Output() submitEvent = new EventEmitter<VehicleFormData>();
 
@@ -368,12 +384,30 @@ export class VehicleModalComponent implements OnInit {
   selectedVehicleType: string = '';
   isSubmitting = false;
   availableYears: number[] = [];
+  errorMessage = '';
+  successMessage = '';
 
-  constructor(private fb: FormBuilder) {}
+  constructor(
+    private fb: FormBuilder,
+    private vehicleService: VehicleService
+  ) {}
 
   ngOnInit(): void {
     this.generateAvailableYears();
     this.initializeForm();
+    if (this.vehicleData && this.isEditMode) {
+      this.populateForm(this.vehicleData);
+    }
+  }
+
+  ngOnChanges(): void {
+    // Reinicializar o formulário quando os inputs mudarem
+    if (this.vehicleForm) {
+      this.initializeForm();
+      if (this.vehicleData && this.isEditMode) {
+        this.populateForm(this.vehicleData);
+      }
+    }
   }
 
   private generateAvailableYears(): void {
@@ -477,6 +511,48 @@ export class VehicleModalComponent implements OnInit {
     });
   }
 
+  private populateForm(data: VehicleFormData): void {
+    console.log('Populando formulário de veículo com dados:', data);
+    
+    // Popular campos básicos
+    this.vehicleForm.patchValue({
+      brand: data.brand,
+      model: data.model,
+      manufacturingYear: data.manufacturingYear,
+      modelYear: data.modelYear,
+      vehicleType: data.vehicleType,
+      dailyRate: data.dailyRate,
+      monthlyRate: data.monthlyRate || 0,
+      companyDailyRate: data.companyDailyRate || 0,
+      reducedDailyRate: data.reducedDailyRate || 0,
+      fuelTankCapacity: data.fuelTankCapacity,
+      vin: data.vin,
+      imgUrl: data.imgUrl || ''
+    });
+
+    // Definir o tipo selecionado e popular dados específicos
+    this.selectedVehicleType = data.vehicleType;
+    
+    // Popular dados específicos por tipo
+    if (data.cargoVehicle) {
+      this.vehicleForm.get('cargoVehicle')?.patchValue(data.cargoVehicle);
+    }
+    if (data.passengerVehicle) {
+      this.vehicleForm.get('passengerVehicle')?.patchValue(data.passengerVehicle);
+    }
+    if (data.leisureVehicle) {
+      this.vehicleForm.get('leisureVehicle')?.patchValue(data.leisureVehicle);
+    }
+    if (data.motorcycle) {
+      this.vehicleForm.get('motorcycle')?.patchValue(data.motorcycle);
+    }
+
+    // Atualizar validadores baseado no tipo
+    this.updateValidators();
+    
+    console.log('Valores do formulário após popular:', this.vehicleForm.value);
+  }
+
   getVehicleTypeLabel(type: string): string {
     const labels: {[key: string]: string} = {
       cargo: 'de Carga',
@@ -492,41 +568,90 @@ export class VehicleModalComponent implements OnInit {
   }
 
   onSubmit(): void {
-    if (this.vehicleForm.valid) {
-      this.isSubmitting = true;
-      
-      const formData = this.vehicleForm.value;
-      const vehicleData: VehicleFormData = {
-        brand: formData.brand,
-        model: formData.model,
-        manufacturingYear: formData.manufacturingYear,
-        modelYear: formData.modelYear,
-        dailyRate: formData.dailyRate,
-        monthlyRate: formData.monthlyRate || 0,
-        companyDailyRate: formData.companyDailyRate || 0,
-        reducedDailyRate: formData.reducedDailyRate || 0,
-        fuelTankCapacity: formData.fuelTankCapacity,
-        vin: formData.vin,
-        imgUrl: formData.imgUrl || '',
-        vehicleType: formData.vehicleType
+    console.log('Tentando submeter formulário de veículo...');
+    console.log('Status do formulário:', {
+      valid: this.vehicleForm.valid,
+      invalid: this.vehicleForm.invalid,
+      isEditMode: this.isEditMode,
+      vehicleData: this.vehicleData
+    });
+    
+    if (this.vehicleForm.invalid) {
+      console.log('Formulário inválido:', this.getFormErrors());
+      return;
+    }
+
+    this.isSubmitting = true;
+    this.errorMessage = '';
+    this.successMessage = '';
+    
+    const formData = this.vehicleForm.value;
+    console.log('Dados do formulário:', formData);
+
+    const vehicleData: VehicleFormData = {
+      brand: formData.brand,
+      model: formData.model,
+      manufacturingYear: formData.manufacturingYear,
+      modelYear: formData.modelYear,
+      dailyRate: formData.dailyRate,
+      monthlyRate: formData.monthlyRate || 0,
+      companyDailyRate: formData.companyDailyRate || 0,
+      reducedDailyRate: formData.reducedDailyRate || 0,
+      fuelTankCapacity: formData.fuelTankCapacity,
+      vin: formData.vin,
+      imgUrl: formData.imgUrl || '',
+      vehicleType: formData.vehicleType
+    };
+
+    // Adicionar ID se for edição
+    if (this.isEditMode && this.vehicleData?.idVehicle) {
+      vehicleData.idVehicle = this.vehicleData.idVehicle;
+    }
+
+    // Adicionar dados específicos baseado no tipo
+    switch (formData.vehicleType) {
+      case 'cargo':
+        vehicleData.cargoVehicle = formData.cargoVehicle;
+        break;
+      case 'passenger':
+        vehicleData.passengerVehicle = formData.passengerVehicle;
+        break;
+      case 'leisure':
+        vehicleData.leisureVehicle = formData.leisureVehicle;
+        break;
+      case 'motorcycle':
+        vehicleData.motorcycle = formData.motorcycle;
+        break;
+    }
+
+    if (this.isEditMode) {
+      // Modo de edição - chamar API de update
+      const updateData = {
+        ...vehicleData,
+        idVehicle: Number(this.vehicleData?.idVehicle)
       };
 
-      // Adicionar dados específicos baseado no tipo
-      switch (formData.vehicleType) {
-        case 'cargo':
-          vehicleData.cargoVehicle = formData.cargoVehicle;
-          break;
-        case 'passenger':
-          vehicleData.passengerVehicle = formData.passengerVehicle;
-          break;
-        case 'leisure':
-          vehicleData.leisureVehicle = formData.leisureVehicle;
-          break;
-        case 'motorcycle':
-          vehicleData.motorcycle = formData.motorcycle;
-          break;
-      }
-
+      this.vehicleService.updateVehicle(updateData).subscribe({
+        next: (response) => {
+          console.log('Veículo atualizado com sucesso:', response);
+          this.isSubmitting = false;
+          this.successMessage = 'Veículo atualizado com sucesso!';
+          
+          setTimeout(() => {
+            this.submitEvent.emit(vehicleData);
+            this.closeModal();
+          }, 2000);
+        },
+        error: (error) => {
+          console.error('Erro ao atualizar veículo:', error);
+          this.isSubmitting = false;
+          this.errorMessage = error.message || 'Erro ao atualizar veículo. Tente novamente.';
+        }
+      });
+    } else {
+      // Modo de criação - emitir evento como antes
+      console.log('DEBUG MODAL - Emitindo dados para criação:', vehicleData);
+      console.log('DEBUG MODAL - Tipo do veículo:', vehicleData.vehicleType);
       this.submitEvent.emit(vehicleData);
     }
   }
@@ -535,6 +660,8 @@ export class VehicleModalComponent implements OnInit {
     this.vehicleForm.reset();
     this.selectedVehicleType = '';
     this.isSubmitting = false;
+    this.errorMessage = '';
+    this.successMessage = '';
   }
 
   // Método para debug - listar erros do formulário

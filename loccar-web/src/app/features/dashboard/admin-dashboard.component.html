@@ -25,7 +25,7 @@
       <!-- Loading State -->
       <div *ngIf="isLoadingStats" class="col-span-full flex justify-center items-center py-12">
         <div class="flex flex-col items-center space-y-4">
-          <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+          <div class="w-8 h-8 border-4 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
           <p class="text-gray-500">Carregando estatísticas...</p>
         </div>
       </div>
@@ -40,7 +40,7 @@
         <div class="flex flex-col items-center space-y-4">
           <i class="bi bi-exclamation-triangle text-4xl text-red-500"></i>
           <p class="text-gray-500">Erro ao carregar estatísticas</p>
-          <button (click)="refreshStats()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          <button (click)="refreshStats()" class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
             Tentar novamente
           </button>
         </div>
@@ -64,11 +64,15 @@
         <!-- Gestão de Usuários -->
         <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
           <h4 class="text-lg font-semibold text-gray-800 mb-4">Gestão de Usuários</h4>
-          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+          <button 
+            (click)="verTodosUsuarios()"
+            class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm transition-colors">
             <i class="bi bi-people mr-2"></i>
             Ver Todos os Usuários
           </button>
-          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+          <button 
+            (click)="adicionarFuncionario()"
+            class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm transition-colors">
             <i class="bi bi-person-plus mr-2"></i>
             Adicionar Funcionário
           </button>
@@ -77,11 +81,15 @@
         <!-- Gestão de Frota -->
         <div class="bg-white rounded-lg shadow p-6 flex flex-col space-y-3">
           <h4 class="text-lg font-semibold text-gray-800 mb-4">Gestão de Frota</h4>
-          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+          <button 
+            (click)="verTodosVeiculos()"
+            class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm transition-colors">
             <i class="bi bi-car-front mr-2"></i>
             Ver Todos os Veículos
           </button>
-          <button class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm">
+          <button 
+            (click)="adicionarVeiculo()"
+            class="bg-gray-800 hover:bg-gray-900 text-white font-medium py-3 px-4 rounded-lg text-sm transition-colors">
             <i class="bi bi-plus-circle mr-2"></i>
             Adicionar Veículo
           </button>

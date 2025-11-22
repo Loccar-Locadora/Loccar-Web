@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" fill="none">
+  <rect width="300" height="200" fill="#f3f4f6"/>
+  <rect x="40" y="50" width="220" height="90" rx="8" fill="#9ca3af"/>
+  <circle cx="80" cy="160" r="18" fill="#374151"/>
+  <circle cx="220" cy="160" r="18" fill="#374151"/>
+  <rect x="60" y="70" width="80" height="50" rx="4" fill="#6b7280"/>
+  <rect x="150" y="70" width="90" height="50" rx="4" fill="#6b7280"/>
+  <text x="150" y="30" text-anchor="middle" fill="#6b7280" font-family="Arial" font-size="14">Veículo de Carga</text>
+</svg>

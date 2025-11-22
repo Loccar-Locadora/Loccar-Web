@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="400" height="300" viewBox="0 0 400 300" fill="none">
+  <rect width="400" height="300" fill="#fdf2f8"/>
+  <path d="M60 120h280l35 45v75h-30v25h-50v-25h-180v25h-50v-25h-30v-75l35-45z" fill="#ec4899"/>
+  <circle cx="140" cy="215" r="22" fill="#1f2937"/>
+  <circle cx="260" cy="215" r="22" fill="#1f2937"/>
+  <rect x="80" y="140" width="240" height="35" fill="#f9a8d4"/>
+  <path d="M90 120h220c5 0 10 5 10 10v20h-240v-20c0-5 5-10 10-10z" fill="#f472b6"/>
+  <text x="200" y="280" text-anchor="middle" fill="#be185d" font-family="Arial, sans-serif" font-size="14">Veículo de Lazer</text>
+</svg>

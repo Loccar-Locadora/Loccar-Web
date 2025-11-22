@@ -30,15 +30,14 @@
           <div 
             class="w-8 h-8 rounded-lg flex items-center justify-center"
             [ngClass]="{
-              'bg-blue-100': stat.color === 'blue',
+              'bg-purple-100': stat.color === 'blue' || stat.color === 'purple',
               'bg-green-100': stat.color === 'green', 
-              'bg-red-100': stat.color === 'red',
-              'bg-purple-100': stat.color === 'purple'
+              'bg-red-100': stat.color === 'red'
             }">
             <i 
               class="text-lg"
               [ngClass]="{
-                'bi bi-car-front text-blue-600': stat.icon === 'directions_car',
+                'bi bi-car-front text-purple-600': stat.icon === 'directions_car',
                 'bi bi-check-circle text-green-600': stat.icon === 'check_circle',
                 'bi bi-exclamation-triangle text-red-600': stat.icon === 'warning',
                 'bi bi-grid text-purple-600': stat.icon === 'category'
@@ -62,33 +61,20 @@
             placeholder="Buscar veículos..."
             #searchInput
             (input)="onBuscaChange(searchInput.value)"
-            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
         </div>
 
         <!-- Filtros -->
         <div class="flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
-          <!-- Filtro por categoria -->
-          <select 
-            #categoryFilter
-            (change)="onCategoriaChange(categoryFilter.value)"
-            class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-            <option value="todas">Todas as categorias</option>
-            <option value="Sedan">Sedan</option>
-            <option value="SUV">SUV</option>
-            <option value="Economico">Econômico</option>
-            <option value="Luxury">Luxury</option>
-            <option value="Hatch">Hatch</option>
-          </select>
 
           <!-- Filtro por status -->
           <select 
             #statusFilter
             (change)="onStatusChange(statusFilter.value)"
-            class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+            class="w-full sm:w-auto px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
             <option value="todos">Todos os status</option>
             <option value="Disponível">Disponíveis</option>
             <option value="Indisponível">Indisponíveis</option>
-            <option value="Manutenção">Em Manutenção</option>
           </select>
         </div>
       </div>
@@ -153,7 +139,7 @@
             <div class="flex space-x-2">
               <button
                 (click)="editarVeiculo(veiculo)"
-                class="text-gray-600 hover:text-blue-600 transition p-2 hover:bg-blue-50 rounded-lg"
+                class="text-gray-600 hover:text-purple-600 transition p-2 hover:bg-purple-50 rounded-lg"
                 title="Editar veículo">
                 <i class="bi bi-pencil"></i>
               </button>
@@ -168,7 +154,7 @@
             <button
               (click)="inativarVeiculo(veiculo)"
               [class]="veiculo.status === 'Disponível' ? 
-                'bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition' : 
+                'bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition' : 
                 'bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-4 py-2 rounded-lg transition'">
               {{ veiculo.status === 'Disponível' ? 'Inativar' : 'Ativar' }}
             </button>
@@ -185,17 +171,32 @@
       <p class="text-gray-500 mb-6">Adicione seu primeiro veículo à frota</p>
       <button 
         (click)="novoVeiculo()"
-        class="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg">
+        class="bg-purple-600 hover:bg-purple-700 text-white font-medium py-2 px-4 rounded-lg">
         Adicionar Veículo
       </button>
     </div>
   </main>
 </div>
 
-<!-- Modal de Veículo -->
+<!-- Modal de Cadastro / Edição de Veículo -->
 <app-vehicle-modal
   #vehicleModal
   [isOpen]="showVehicleModal"
+  [isEditMode]="isEditMode"
+  [vehicleData]="selectedVehicleData"
   (closeEvent)="closeVehicleModal()"
   (submitEvent)="onVehicleSubmit($event)">
 </app-vehicle-modal>
+
+<!-- Modal de Confirmação para Exclusão -->
+<app-confirmation-modal
+  [isOpen]="isConfirmationModalOpen"
+  title="Excluir Veículo"
+  message="Tem certeza que deseja excluir este veículo?"
+  description="Esta ação não pode ser desfeita."
+  confirmText="Excluir"
+  cancelText="Cancelar"
+  [isLoading]="isDeleting"
+  (confirmEvent)="onConfirmDelete()"
+  (cancelEvent)="onCancelDelete()">
+</app-confirmation-modal>

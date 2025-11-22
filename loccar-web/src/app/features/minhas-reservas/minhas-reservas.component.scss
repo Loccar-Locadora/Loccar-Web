@@ -1,0 +1,94 @@
+/* Estilos específicos para o componente Minhas Reservas */
+
+/* Layout principal */
+.main-content {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+/* Cards de reserva */
+.reserva-card {
+  transition: all 0.3s ease;
+  border: 1px solid #e5e7eb;
+}
+
+.reserva-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  border-color: #d1d5db;
+}
+
+.status-badge {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.veiculo-imagem {
+  border-radius: 8px;
+  transition: opacity 0.3s ease;
+}
+
+.veiculo-imagem:hover {
+  opacity: 0.9;
+}
+
+/* Animações para cards de estatísticas */
+.stats-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Loading animation */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Botão Nova Reserva */
+.nova-reserva-btn {
+  background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+  box-shadow: 0 4px 15px rgba(139, 92, 246, 0.3);
+}
+
+.nova-reserva-btn:hover {
+  background: linear-gradient(135deg, #7c3aed 0%, #6d28d9 100%);
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .reserva-card .veiculo-imagem {
+    width: 100px;
+    height: 75px;
+  }
+  
+  .reserva-card .detalhes-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  /* Header responsivo */
+  .header-responsive {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+
+  .nova-reserva-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}

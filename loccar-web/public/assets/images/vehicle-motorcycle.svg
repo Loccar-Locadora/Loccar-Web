@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 200" fill="none">
+  <rect width="300" height="200" fill="#f3f4f6"/>
+  <ellipse cx="150" cy="120" rx="80" ry="40" fill="#9ca3af"/>
+  <circle cx="120" cy="160" r="12" fill="#374151"/>
+  <circle cx="180" cy="160" r="12" fill="#374151"/>
+  <rect x="140" y="90" width="20" height="30" rx="2" fill="#6b7280"/>
+  <text x="150" y="30" text-anchor="middle" fill="#6b7280" font-family="Arial" font-size="14">Motocicleta</text>
+</svg>

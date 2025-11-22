@@ -1,16 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { SidebarComponent } from '../../layouts/sidebar/sidebar.component';
 import { Observable } from 'rxjs';
 import { DashboardService } from '../../services/dashboard.service';
 import { UserStatistics } from '../dashboard/models';
+import { UserModalComponent, UserFormData } from './user-modal.component';
+import { ConfirmationModalComponent } from '../../shared/confirmation-modal.component';
+import { CustomerService } from '../../services/customer.service';
 
 export interface Usuario {
   id: string;
   name: string;
   email: string;
   cellphone: string;
+  driverLicense?: string;
   isActive: boolean;
   createdAt: string;
   updatedAt: string;
@@ -31,7 +35,7 @@ export interface UserStats {
 @Component({
   selector: 'app-usuarios',
   standalone: true,
-  imports: [CommonModule, SidebarComponent],
+  imports: [CommonModule, SidebarComponent, UserModalComponent, ConfirmationModalComponent],
   templateUrl: './usuarios.component.html',
   styleUrls: ['./usuarios.component.scss']
 })
@@ -43,10 +47,24 @@ export class UsuariosComponent implements OnInit {
   isLoadingUsers = false;
   filtroTipo = 'todos';
   termoBusca = '';
+  isUserModalOpen = false;
+  isEditMode = false;
+  selectedUserData: UserFormData | null = null;
+  
+  // Dados para filtragem
+  allUsers: Usuario[] = [];
+  filteredUsers: Usuario[] = [];
+  
+  // Confirmation modal
+  isConfirmationModalOpen = false;
+  userToDelete: Usuario | null = null;
+  isDeleting = false;
 
   constructor(
     private router: Router,
-    private dashboardService: DashboardService
+    private route: ActivatedRoute,
+    private dashboardService: DashboardService,
+    private customerService: CustomerService
   ) {
     // Inicializar observable vazio - dados serão carregados da API
     this.usuarios$ = new Observable<Usuario[]>(observer => {
@@ -62,7 +80,7 @@ export class UsuariosComponent implements OnInit {
           title: 'Total de Usuários',
           value: '0',
           icon: 'people',
-          color: 'blue'
+          color: 'purple'
         },
         {
           id: 2,
@@ -92,6 +110,16 @@ export class UsuariosComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserStats();
     this.loadUsers();
+    
+    // Verificar se deve abrir modal de criação
+    this.route.queryParams.subscribe(params => {
+      if (params['action'] === 'create') {
+        console.log('Abrindo modal de criação de usuário via queryParam');
+        this.novoUsuario();
+        // Limpar o queryParam para evitar reabrir o modal
+        this.router.navigate([], { queryParams: {} });
+      }
+    });
   }
 
   private loadUserStats(): void {
@@ -112,7 +140,7 @@ export class UsuariosComponent implements OnInit {
               title: 'Total de Usuários',
               value: stats.totalUsers.toString(),
               icon: 'people',
-              color: 'blue'
+              color: 'purple'
             },
             {
               id: 2,
@@ -152,7 +180,7 @@ export class UsuariosComponent implements OnInit {
               title: 'Total de Usuários',
               value: 'Erro',
               icon: 'people',
-              color: 'blue'
+              color: 'purple'
             },
             {
               id: 2,
@@ -206,28 +234,93 @@ export class UsuariosComponent implements OnInit {
   }
 
   editarUsuario(usuario: Usuario): void {
-    console.log('Editar usuário:', usuario);
-    // Implementar navegação para edição
+    console.log('Carregando dados do usuário para edição:', usuario);
+    
+    // Buscar dados completos do usuário
+    this.customerService.getCustomer(usuario.id).subscribe({
+      next: (customerData) => {
+        console.log('Dados do usuário carregados:', customerData);
+        
+        // Converter dados da API para o formato do formulário
+        this.selectedUserData = {
+          id: usuario.id,
+          username: customerData.username || usuario.name,
+          email: customerData.email || usuario.email,
+          driverLicense: customerData.driverLicense || usuario.driverLicense || '',
+          cellPhone: customerData.cellphone || usuario.cellphone
+        };
+        
+        console.log('Dados preparados para edição:', this.selectedUserData);
+        
+        this.isEditMode = true;
+        this.isUserModalOpen = true;
+      },
+      error: (error) => {
+        console.error('Erro ao carregar dados do usuário:', error);
+        
+        // Se falhar na API, usar dados da lista
+        this.selectedUserData = {
+          id: usuario.id,
+          username: usuario.name,
+          email: usuario.email,
+          driverLicense: usuario.driverLicense || '',
+          cellPhone: usuario.cellphone
+        };
+        
+        this.isEditMode = true;
+        this.isUserModalOpen = true;
+      }
+    });
   }
 
   excluirUsuario(usuario: Usuario): void {
-    console.log('Excluir usuário:', usuario);
-    // Implementar confirmação e exclusão
+    console.log('Preparando exclusão do usuário:', usuario);
+    this.userToDelete = usuario;
+    this.isConfirmationModalOpen = true;
   }
 
   novoUsuario(): void {
-    console.log('Novo usuário');
-    // Implementar navegação para criação
+    console.log('Abrindo modal de novo usuário');
+    this.selectedUserData = null;
+    this.isEditMode = false;
+    this.isUserModalOpen = true;
   }
 
   onFiltroChange(filtro: string): void {
     this.filtroTipo = filtro;
-    // Implementar filtragem
+    this.applyFilters();
   }
 
   onBuscaChange(termo: string): void {
     this.termoBusca = termo;
-    // Implementar busca
+    this.applyFilters();
+  }
+
+  private applyFilters(): void {
+    let filtered = [...this.allUsers];
+
+    // Filtro por tipo/papel
+    if (this.filtroTipo !== 'todos') {
+      filtered = filtered.filter(user => user.tipo === this.filtroTipo);
+    }
+
+    // Filtro por busca (nome ou email)
+    if (this.termoBusca.trim()) {
+      const searchTerm = this.termoBusca.toLowerCase().trim();
+      filtered = filtered.filter(user => 
+        user.name.toLowerCase().includes(searchTerm) ||
+        user.email.toLowerCase().includes(searchTerm) ||
+        user.cellphone.includes(searchTerm)
+      );
+    }
+
+    this.filteredUsers = filtered;
+    
+    // Atualizar o observable com os dados filtrados
+    this.usuarios$ = new Observable<Usuario[]>(observer => {
+      observer.next(this.filteredUsers);
+      observer.complete();
+    });
   }
 
   refreshStats(): void {
@@ -250,6 +343,7 @@ export class UsuariosComponent implements OnInit {
           name: user.name,
           email: user.email,
           cellphone: user.cellphone || '',
+          driverLicense: user.driverLicense || '',
           isActive: user.isActive,
           createdAt: user.createdAt,
           updatedAt: user.updatedAt,
@@ -259,17 +353,17 @@ export class UsuariosComponent implements OnInit {
           tipo: this.getTipoFromRoles(user.roles || [])
         }));
 
-        // Atualizar o observable com os dados reais
-        this.usuarios$ = new Observable<Usuario[]>(observer => {
-          observer.next(transformedUsers);
-          observer.complete();
-        });
+        // Armazenar dados originais e aplicar filtros
+        this.allUsers = transformedUsers;
+        this.applyFilters();
       },
       error: (error) => {
         console.error('Erro ao carregar lista de usuários:', error);
         this.isLoadingUsers = false;
         
-        // Manter lista vazia em caso de erro
+        // Limpar dados em caso de erro
+        this.allUsers = [];
+        this.filteredUsers = [];
         this.usuarios$ = new Observable<Usuario[]>(observer => {
           observer.next([]);
           observer.complete();
@@ -299,5 +393,61 @@ export class UsuariosComponent implements OnInit {
   refreshUsers(): void {
     console.log('Recarregando lista de usuários...');
     this.loadUsers();
+  }
+
+  resetFilters(): void {
+    this.filtroTipo = 'todos';
+    this.termoBusca = '';
+    this.applyFilters();
+  }
+
+  onCloseUserModal(): void {
+    console.log('Fechando modal de usuário');
+    this.isUserModalOpen = false;
+    this.isEditMode = false;
+    this.selectedUserData = null;
+  }
+
+  onUserSubmit(userData: UserFormData): void {
+    console.log('Usuário processado via modal:', userData);
+    // Recarregar listas após cadastro/edição
+    this.loadUsers();
+    this.loadUserStats();
+    this.isUserModalOpen = false;
+    this.isEditMode = false;
+    this.selectedUserData = null;
+  }
+
+  // Métodos do modal de confirmação
+  onConfirmDelete(): void {
+    if (!this.userToDelete) return;
+
+    this.isDeleting = true;
+    console.log('Excluindo usuário:', this.userToDelete);
+
+    this.customerService.deleteCustomer(this.userToDelete.id).subscribe({
+      next: (response) => {
+        console.log('Usuário excluído com sucesso:', response);
+        this.isDeleting = false;
+        this.isConfirmationModalOpen = false;
+        this.userToDelete = null;
+        
+        // Recarregar listas
+        this.loadUsers();
+        this.loadUserStats();
+      },
+      error: (error) => {
+        console.error('Erro ao excluir usuário:', error);
+        this.isDeleting = false;
+        // Manter modal aberto para mostrar erro ou tentar novamente
+      }
+    });
+  }
+
+  onCancelDelete(): void {
+    console.log('Cancelando exclusão');
+    this.isConfirmationModalOpen = false;
+    this.userToDelete = null;
+    this.isDeleting = false;
   }
 }

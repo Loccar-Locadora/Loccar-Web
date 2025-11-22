@@ -10,11 +10,29 @@ interface BaseReturn<T> {
   data: T;
 }
 
+// Interface alternativa para endpoints que retornam code/message
+interface ApiResponse<T> {
+  code: string;
+  message: string;
+  data: T;
+}
+
 // Interface para estatísticas do dashboard
 export interface DashboardStats {
   totalVehicles: number;
   activeReservations: number;
   availableVehicles: number;
+}
+
+// Interface para resposta da receita mensal
+export interface MonthlyRevenueResponse {
+  year: number;
+  month: number;
+  monthName: string;
+  totalRevenue: number;
+  totalReservations: number;
+  averageRevenuePerReservation: number;
+  generatedAt: string;
 }
 
 @Injectable({
@@ -123,12 +141,13 @@ export class DashboardService {
     console.log(`Buscando receita para ${month}/${year}...`);
     
     try {
-      const response = await this.http.get<BaseReturn<number>>(
+      const response = await this.http.get<ApiResponse<MonthlyRevenueResponse>>(
         `${this.BASE_URL}/statistics/revenue/monthly/${year}/${month}`
       ).toPromise();
       
       console.log(`Receita para ${month}/${year}:`, response);
-      return response?.data || 0;
+      // Extrair o totalRevenue do objeto de resposta
+      return response?.data?.totalRevenue || 0;
     } catch (error) {
       console.error(`Erro ao buscar receita para ${month}/${year}:`, error);
       return 0; // Retorna 0 em caso de erro
@@ -266,19 +285,25 @@ export class DashboardService {
    * Transformar dados do formulário para o formato da API
    */
   private transformVehicleDataForAPI(vehicleData: any): any {
-    // Mapear tipo do veículo para número
-    const getTypeNumber = (type: string): number => {
+    console.log('DEBUG - transformVehicleDataForAPI - vehicleData recebido:', vehicleData);
+    console.log('DEBUG - vehicleType:', vehicleData.vehicleType);
+    console.log('DEBUG - ANOS INPUT - manufacturingYear:', vehicleData.manufacturingYear, 'modelYear:', vehicleData.modelYear);
+    
+    // Mapear tipo do veículo para número (conforme enum do backend)
+    const getVehicleTypeNumber = (type: string): number => {
       const typeMap: {[key: string]: number} = {
-        cargo: 0,
-        passenger: 1,
-        leisure: 2,
-        motorcycle: 3
+        cargo: 0,        // Cargo = 0
+        motorcycle: 1,   // Motorcycle = 1
+        passenger: 2,    // Passenger = 2
+        leisure: 3       // Leisure = 3
       };
-      return typeMap[type] || 0;
+      const typeNumber = typeMap[type] || 0;
+      console.log('DEBUG - Mapeando tipo (corrigido):', type, '-> número:', typeNumber);
+      return typeNumber;
     };
 
     // Estrutura principal do veículo
-    const apiData: any = {
+    let apiData: any = {
       idVehicle: 0,
       brand: vehicleData.brand,
       model: vehicleData.model,
@@ -292,131 +317,83 @@ export class DashboardService {
       companyDailyRate: vehicleData.companyDailyRate || 0,
       reserved: false,
       imgUrl: vehicleData.imgUrl || '',
-      type: getTypeNumber(vehicleData.vehicleType),
+      type: getVehicleTypeNumber(vehicleData.vehicleType),
       cargoVehicle: null,
       motorcycle: null,
       passengerVehicle: null,
       leisureVehicle: null
     };
 
+    console.log('DEBUG - apiData antes de adicionar dados específicos:', apiData);
+    
     // Adicionar dados específicos baseado no tipo
+    console.log('DEBUG - Switch no vehicleType:', vehicleData.vehicleType);
     switch (vehicleData.vehicleType) {
       case 'cargo':
+        console.log('DEBUG - Processando veículo de carga');
         if (vehicleData.cargoVehicle) {
+          console.log('DEBUG - Criando apiData para veículo de carga');
           apiData.cargoVehicle = {
-            idVehicle: 0,
-            brand: vehicleData.brand,
-            model: vehicleData.model,
-            manufacturingYear: vehicleData.manufacturingYear,
-            modelYear: vehicleData.modelYear,
-            vin: vehicleData.vin,
-            fuelTankCapacity: vehicleData.fuelTankCapacity,
-            dailyRate: vehicleData.dailyRate,
-            reducedDailyRate: vehicleData.reducedDailyRate || 0,
-            monthlyRate: vehicleData.monthlyRate || 0,
-            companyDailyRate: vehicleData.companyDailyRate || 0,
-            reserved: false,
-            imgUrl: vehicleData.imgUrl || '',
-            type: 0,
-            cargoVehicle: null,
-            motorcycle: null,
-            passengerVehicle: null,
-            leisureVehicle: null,
             cargoCapacity: vehicleData.cargoVehicle.cargoCapacity,
             cargoType: vehicleData.cargoVehicle.cargoType,
             tareWeight: vehicleData.cargoVehicle.tareWeight,
             cargoCompartmentSize: vehicleData.cargoVehicle.cargoCompartmentSize
           };
+          console.log('DEBUG - apiData.cargoVehicle criado:', apiData.cargoVehicle);
         }
         break;
 
       case 'passenger':
+        console.log('DEBUG - Processando veículo de passageiros');
         if (vehicleData.passengerVehicle) {
+          console.log('DEBUG - Criando apiData para veículo de passageiros');
           apiData.passengerVehicle = {
-            idVehicle: 0,
-            brand: vehicleData.brand,
-            model: vehicleData.model,
-            manufacturingYear: vehicleData.manufacturingYear,
-            modelYear: vehicleData.modelYear,
-            vin: vehicleData.vin,
-            fuelTankCapacity: vehicleData.fuelTankCapacity,
-            dailyRate: vehicleData.dailyRate,
-            reducedDailyRate: vehicleData.reducedDailyRate || 0,
-            monthlyRate: vehicleData.monthlyRate || 0,
-            companyDailyRate: vehicleData.companyDailyRate || 0,
-            reserved: false,
-            imgUrl: vehicleData.imgUrl || '',
-            type: 1,
-            cargoVehicle: null,
-            motorcycle: null,
-            passengerVehicle: null,
-            leisureVehicle: null,
             passengerCapacity: vehicleData.passengerVehicle.passengerCapacity,
             tv: vehicleData.passengerVehicle.tv,
             airConditioning: vehicleData.passengerVehicle.airConditioning,
             powerSteering: vehicleData.passengerVehicle.powerSteering
           };
+          console.log('DEBUG - apiData.passengerVehicle criado:', apiData.passengerVehicle);
         }
         break;
 
       case 'leisure':
+        console.log('DEBUG - Processando veículo de lazer');
+        console.log('DEBUG - leisureVehicle data:', vehicleData.leisureVehicle);
         if (vehicleData.leisureVehicle) {
+          console.log('DEBUG - Criando apiData.leisureVehicle');
           apiData.leisureVehicle = {
-            idVehicle: 0,
-            brand: vehicleData.brand,
-            model: vehicleData.model,
-            manufacturingYear: vehicleData.manufacturingYear,
-            modelYear: vehicleData.modelYear,
-            vin: vehicleData.vin,
-            fuelTankCapacity: vehicleData.fuelTankCapacity,
-            dailyRate: vehicleData.dailyRate,
-            reducedDailyRate: vehicleData.reducedDailyRate || 0,
-            monthlyRate: vehicleData.monthlyRate || 0,
-            companyDailyRate: vehicleData.companyDailyRate || 0,
-            reserved: false,
-            imgUrl: vehicleData.imgUrl || '',
-            type: 2,
-            cargoVehicle: null,
-            motorcycle: null,
-            passengerVehicle: null,
-            leisureVehicle: null,
             automatic: vehicleData.leisureVehicle.automatic,
             powerSteering: vehicleData.leisureVehicle.powerSteering,
             airConditioning: vehicleData.leisureVehicle.airConditioning,
             category: vehicleData.leisureVehicle.category
           };
+          console.log('DEBUG - apiData.leisureVehicle criado:', apiData.leisureVehicle);
+        } else {
+          console.log('DEBUG - ERRO: leisureVehicle não encontrado!');
         }
         break;
 
       case 'motorcycle':
+        console.log('DEBUG - Processando motocicleta');
         if (vehicleData.motorcycle) {
+          console.log('DEBUG - Criando apiData para motocicleta');
           apiData.motorcycle = {
-            idVehicle: 0,
-            brand: vehicleData.brand,
-            model: vehicleData.model,
-            manufacturingYear: vehicleData.manufacturingYear,
-            modelYear: vehicleData.modelYear,
-            vin: vehicleData.vin,
-            fuelTankCapacity: vehicleData.fuelTankCapacity,
-            dailyRate: vehicleData.dailyRate,
-            reducedDailyRate: vehicleData.reducedDailyRate || 0,
-            monthlyRate: vehicleData.monthlyRate || 0,
-            companyDailyRate: vehicleData.companyDailyRate || 0,
-            reserved: false,
-            imgUrl: vehicleData.imgUrl || '',
-            type: 3,
-            cargoVehicle: null,
-            motorcycle: null,
-            passengerVehicle: null,
-            leisureVehicle: null,
             tractionControl: vehicleData.motorcycle.tractionControl,
             absBrakes: vehicleData.motorcycle.absBrakes,
             cruiseControl: vehicleData.motorcycle.cruiseControl
           };
+          console.log('DEBUG - apiData.motorcycle criado:', apiData.motorcycle);
         }
         break;
     }
 
+    console.log('DEBUG - Final apiData before return:', apiData);
+    console.log('DEBUG - Final type value (NÚMERO):', apiData.type);
+    console.log('DEBUG - ANOS - manufacturingYear:', apiData.manufacturingYear, 'modelYear:', apiData.modelYear);
+    console.log('DEBUG - Original vehicleType (STRING):', vehicleData.vehicleType);
+    console.log('DEBUG - CONVERSÃO: string', vehicleData.vehicleType, '-> número', apiData.type);
+    console.log('DEBUG - Enviando para API com vehicleType como NÚMERO:', apiData.type);
     return apiData;
   }
 }

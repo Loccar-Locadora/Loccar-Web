@@ -1,0 +1,134 @@
+/* Estilos para Veículos Disponíveis - Seguindo padrão da tela de admin */
+
+/* Animação de spin para loading */
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Cards dos veículos */
+.vehicle-card {
+  transition: all 0.2s ease;
+}
+
+.vehicle-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+/* Hover effect para imagens */
+.vehicle-image {
+  transition: transform 0.2s ease;
+  overflow: hidden;
+}
+
+.vehicle-card:hover .vehicle-image img {
+  transform: scale(1.02);
+}
+
+/* Botões de ação */
+.action-btn {
+  transition: all 0.2s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+  .ml-64 {
+    margin-left: 0;
+  }
+  
+  .w-64 {
+    display: none;
+  }
+}
+
+/* Estados de loading e erro */
+.loading-spinner {
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+}
+
+/* Estilos para o modal de reserva */
+app-reserva-modal {
+  z-index: 1000;
+}
+
+/* Melhorias nos filtros */
+.filter-section {
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+}
+
+/* Loading animation */
+.loading-spinner {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .filter-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .vehicle-grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .vehicle-card {
+    margin-bottom: 1rem;
+  }
+}
+
+@media (max-width: 1024px) {
+  .vehicle-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Animações de entrada */
+.vehicle-card {
+  animation: slideInUp 0.5s ease-out;
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Estados de hover para ícones */
+.feature-icon {
+  transition: color 0.2s ease;
+}
+
+.vehicle-card:hover .feature-icon {
+  color: #8b5cf6;
+}
+
+/* Empty state */
+.empty-state {
+  animation: fadeIn 0.5s ease-in;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
