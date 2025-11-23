@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -23,7 +24,7 @@ export interface ApiResponse<T> {
   providedIn: 'root'
 })
 export class CustomerService {
-  private readonly BASE_URL = 'http://localhost:8080/api/user';
+  private readonly BASE_URL = environment.mainApiUrl + 'api/user';
 
   constructor(private http: HttpClient) {}
 

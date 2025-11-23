@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient } from '@angular/common/http';
 import { Observable, forkJoin, map, catchError, of } from 'rxjs';
 import { UserStatistics } from '../features/dashboard/models';
@@ -39,8 +40,8 @@ export interface MonthlyRevenueResponse {
   providedIn: 'root'
 })
 export class DashboardService {
-  // URL base da API (usando a mesma base do AuthService)
-  private readonly BASE_URL = 'http://localhost:8080/api';
+  // URL base da API principal
+  private readonly BASE_URL = environment.mainApiUrl + 'api';
 
   constructor(private http: HttpClient) {}
 

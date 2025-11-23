@@ -1,4 +1,5 @@
 import { Injectable } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Observable, throwError } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -73,7 +74,7 @@ export interface ReservationDetail {
   providedIn: 'root'
 })
 export class ReservationService {
-  private readonly BASE_URL = 'http://localhost:8080/api/reservation';
+  private readonly BASE_URL = environment.mainApiUrl + 'api/reservation';
 
   constructor(private http: HttpClient) {}
 

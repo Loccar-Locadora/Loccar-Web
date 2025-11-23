@@ -1,4 +1,5 @@
 import { Injectable, signal, computed, PLATFORM_ID, Inject } from '@angular/core';
+import { environment } from '../../environments/environment';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { tap, catchError, map, switchMap } from 'rxjs/operators';
 import { Observable, throwError, BehaviorSubject, of } from 'rxjs';
@@ -18,11 +19,11 @@ import {
   providedIn: 'root'
 })
 export class AuthService {
-  // URLs da API baseadas nos CURLs fornecidos
-  private readonly LOGIN_URL = 'http://localhost:5290/api/auth/login';
-  private readonly REGISTER_URL = 'http://localhost:5290/api/auth/register';
-  private readonly LOGOUT_URL = 'http://localhost:5290/api/auth/logout';
-  private readonly USER_BY_EMAIL_URL = 'http://localhost:8080/api/user/find/email';
+  // URLs da API usando variáveis de ambiente
+  private readonly LOGIN_URL = environment.authApiUrl + 'api/auth/login';
+  private readonly REGISTER_URL = environment.authApiUrl + 'api/auth/register';
+  private readonly LOGOUT_URL = environment.authApiUrl + 'api/auth/logout';
+  private readonly USER_BY_EMAIL_URL = environment.mainApiUrl + 'api/user/find/email';
 
   // Estado de autenticação usando BehaviorSubject
   private authStateSubject = new BehaviorSubject<AuthState>({
