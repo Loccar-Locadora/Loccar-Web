@@ -116,13 +116,6 @@
           <div *ngFor="let reserva of reservasAtivas" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-start justify-between">
               <div class="flex">
-                <!-- Imagem do Veículo -->
-                <div class="flex-shrink-0 mr-6">
-                  <img [src]="reserva.imgUrl || 'assets/images/car-placeholder.jpg'" 
-                       [alt]="getNomeVeiculo(reserva)"
-                       class="w-32 h-24 object-cover rounded-lg"
-                       onerror="this.src='assets/images/car-placeholder.jpg'">
-                </div>
                 
                 <!-- Detalhes da Reserva -->
                 <div class="flex-1">
@@ -174,13 +167,6 @@
           <div *ngFor="let reserva of reservasConcluidas" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-start justify-between">
               <div class="flex">
-                <!-- Imagem do Veículo -->
-                <div class="flex-shrink-0 mr-6">
-                  <img [src]="reserva.imgUrl || 'assets/images/car-placeholder.jpg'" 
-                       [alt]="getNomeVeiculo(reserva)"
-                       class="w-32 h-24 object-cover rounded-lg opacity-75"
-                       onerror="this.src='assets/images/car-placeholder.jpg'">
-                </div>
                 
                 <!-- Detalhes da Reserva -->
                 <div class="flex-1">
@@ -225,13 +211,6 @@
           <div *ngFor="let reserva of reservasCanceladas" class="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
             <div class="flex items-start justify-between">
               <div class="flex">
-                <!-- Imagem do Veículo -->
-                <div class="flex-shrink-0 mr-6">
-                  <img [src]="reserva.imgUrl || 'assets/images/car-placeholder.jpg'" 
-                       [alt]="getNomeVeiculo(reserva)"
-                       class="w-32 h-24 object-cover rounded-lg opacity-50"
-                       onerror="this.src='assets/images/car-placeholder.jpg'">
-                </div>
                 
                 <!-- Detalhes da Reserva -->
                 <div class="flex-1">
