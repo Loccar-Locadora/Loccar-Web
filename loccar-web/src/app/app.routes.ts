@@ -34,7 +34,7 @@ export const routes: Routes = [
   {
     path: 'minhas-reservas',
     component: MinhasReservasComponent,
-    canActivate: [authGuard]
+    canActivate: [authGuard, roleGuard]
   },
   {
     path: 'veiculos-disponiveis',

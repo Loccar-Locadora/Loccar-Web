@@ -374,9 +374,8 @@ export class AuthService {
   canAccessReservas(): boolean {
     const user = this.getCurrentUser();
     if (!user || !user.role) return false;
-    
-    // Todos os usuários autenticados podem ver suas próprias reservas
-    return true;
+    // Apenas usuários que não são administradores podem ver suas próprias reservas
+    return user.role !== 'CLIENT_ADMIN';
   }
 
   /**
@@ -392,6 +391,7 @@ export class AuthService {
     switch (user.role) {
       case 'CLIENT_USER':
         return '/veiculos';
+      case 'CLIENT_ADMIN':
       case 'Admin':
       case 'Funcionario':
       case 'Cliente':

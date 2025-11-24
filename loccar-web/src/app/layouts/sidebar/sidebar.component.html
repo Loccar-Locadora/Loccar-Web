@@ -45,7 +45,7 @@
     </a>
     
     <!-- Minhas Reservas - para todos os usuários -->
-    <a *ngIf="canAccessReservas()" 
+    <a *ngIf="currentUser?.role === 'Cliente' || currentUser?.role === 'CLIENT_USER'" 
        routerLink="/minhas-reservas" 
        routerLinkActive="bg-purple-600 text-white font-semibold" 
        class="flex items-center space-x-3 px-3 py-2 rounded hover:bg-purple-100 hover:text-purple-700 transition">
